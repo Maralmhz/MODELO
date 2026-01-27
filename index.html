@@ -1603,11 +1603,32 @@ window.emitirOS = async function() {
 
 // --- IMPORTANTE: GARANTE QUE O BOTÃO ANTIGO FUNCIONE ---
 window.gerarPDF = window.emitirOS;
+    <script>
+  function definirAgora() {
+    const agora = new Date();
+
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+
+    const horas = String(agora.getHours()).padStart(2, '0');
+    const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+    const campoData = document.getElementById('data');
+    const campoHora = document.getElementById('hora');
+
+    if (campoData) campoData.value = `${ano}-${mes}-${dia}`;
+    if (campoHora) campoHora.value = `${horas}:${minutos}`;
+
+    // Atualiza resumos e número de OS
+    atualizarResumoVeiculo();
+  }
 </script>
 
 
 </body>
 </html>
+
 
 
 
