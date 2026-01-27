@@ -1226,10 +1226,9 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="app.js"></script>
 <script src="wizard.js"></script>
 <script>
-// ✅ VERSÃO DEFINITIVA: SÓ O PDF (NÃO MEXE NO RESTO)
 window.emitirOS = async function() {
     
-    // 1. HELPER PARA LOGO (Evita imagem quebrada)
+    // 1. HELPER PARA LOGO (Mesmo de antes, mas essencial)
     const getBase64ImageFromUrl = async (imageUrl) => {
         try {
             const res = await fetch(imageUrl);
@@ -1295,9 +1294,9 @@ window.emitirOS = async function() {
         htmlItens = '<tr><td colspan="3" style="text-align:center; padding:10px; color:#999;">Nenhum item lançado.</td></tr>';
     }
 
-    // 5. HTML DO PDF (FIXO EM 700PX PARA A4)
+    // 5. CONTEÚDO HTML
     const conteudoPDF = `
-    <div style="font-family: Arial, sans-serif; width: 700px; margin: 0 auto; background: #fff; padding: 20px; color: #333;">
+    <div style="font-family: Arial, sans-serif; background: #fff; padding: 30px; color: #333;">
         
         <!-- HEADER -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #cc0000; padding-bottom: 15px; margin-bottom: 20px;">
@@ -1325,6 +1324,7 @@ window.emitirOS = async function() {
                 <p style="margin: 3px 0;"><strong>Nome:</strong> ${dados.cliente}</p>
                 <p style="margin: 3px 0;"><strong>Doc:</strong> ${dados.doc}</p>
                 <p style="margin: 3px 0;"><strong>Tel:</strong> ${dados.tel}</p>
+                <p style="margin: 3px 0;"><strong>End:</strong> ${dados.endereco}</p>
             </div>
             <div style="flex: 1;">
                 <h3 style="margin-top:0; color: #cc0000; border-bottom: 1px solid #ccc; font-size: 12px; padding-bottom: 5px;">VEÍCULO</h3>
@@ -1374,48 +1374,76 @@ window.emitirOS = async function() {
     </div>
     `;
 
-     // 6. GERA E SALVA (Versão Estável)
-    const divTemp = document.createElement('div');
-    divTemp.innerHTML = conteudoPDF;
+    // 6. GERAÇÃO (OVERLAY VISÍVEL OBRIGATÓRIO)
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.background = 'rgba(0,0,0,0.8)'; // Fundo escuro pra você ver que abriu
+    overlay.style.zIndex = '999999';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.overflowY = 'auto'; // Scroll se necessário
+    
+    // Onde o PDF será desenhado (Folha A4 visível)
+    const sheet = document.createElement('div');
+    sheet.innerHTML = conteudoPDF;
+    sheet.style.width = '700px'; 
+    sheet.style.background = 'white';
+    sheet.style.padding = '0';
+    sheet.style.margin = '20px auto'; // Centraliza
+    sheet.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
 
-    // Truque: Deixa visível mas "atrás" de tudo
-    divTemp.style.position = 'fixed';
-    divTemp.style.left = '0';
-    divTemp.style.top = '0';
-    divTemp.style.width = '750px'; // Um pouco mais largo que A4
-    divTemp.style.zIndex = '-100'; // Fica atrás do site
-    divTemp.style.background = '#ffffff';
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
 
-    document.body.appendChild(divTemp);
+    // Mensagem de loading
+    const msg = document.createElement('div');
+    msg.innerText = "⏳ Gerando PDF... Por favor, aguarde.";
+    msg.style.position = 'fixed';
+    msg.style.top = '10px';
+    msg.style.left = '50%';
+    msg.style.transform = 'translateX(-50%)';
+    msg.style.background = 'yellow';
+    msg.style.padding = '10px 20px';
+    msg.style.fontWeight = 'bold';
+    msg.style.zIndex = '1000000';
+    document.body.appendChild(msg);
 
+    // Configuração do html2pdf
     const opt = {
         margin: [5, 5, 5, 5],
         filename: `OS_${dados.placa}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
             scale: 2, 
-            useCORS: true,
+            useCORS: true, 
             scrollY: 0,
-            windowWidth: 800 // Força a largura para não cortar
+            windowWidth: 800
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
-        await new Promise(r => setTimeout(r, 500)); // Espera 0.5s para renderizar imagens
-        await html2pdf().set(opt).from(divTemp).save();
+        window.scrollTo(0, 0); // Sobe a tela
+        await new Promise(r => setTimeout(r, 1000)); // Espera 1s visualizando o papel
+        await html2pdf().set(opt).from(sheet).save();
     } catch (e) {
-        alert('Erro PDF: ' + e.message);
+        alert('Erro: ' + e.message);
     } finally {
-        document.body.removeChild(divTemp);
+        document.body.removeChild(overlay);
+        document.body.removeChild(msg);
     }
-
 };
+
 </script>
 
 
 </body>
 </html>
+
 
 
 
