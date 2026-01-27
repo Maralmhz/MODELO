@@ -24,10 +24,7 @@
         <h1 id="nome-oficina">OFICINA</h1>
         <p id="subtitulo-oficina">Checklist de entrada e inspeção veicular</p>
         <div class="contato-info">
-            <svg class="whatsapp-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#25D366" viewBox="0 0 16 16">
-    <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-</svg>
-
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="whatsapp-icon">
             <span id="telefone-oficina">(00) 00000-0000</span>
         </div>
         <div class="endereco-oficina" id="endereco-oficina">
@@ -253,7 +250,7 @@
                     </div>
 
                     <div class="action-buttons">
-                        <button type="button" class="btn-success" onclick="emitirOS()">📄 Baixar Ordem de Serviço</button>
+                        <button type="button" class="btn-success" onclick="gerarPDF()">📄 Gerar PDF</button>
                         <button type="button" class="btn-secondary" onclick="limparFormulario()">🗑️ Limpar</button>
                     </div>
                 </form>
@@ -415,7 +412,7 @@
 
 </div>
                 <div class="action-buttons">
-    <button type="button" class="btn-success" onclick="emitirOS()">📄 Baixar Ordem de Serviço</button>
+    <button type="button" class="btn-success" onclick="gerarPDF()">📄 Gerar PDF</button>
 </div>
             </div>
         </div>
@@ -466,9 +463,7 @@
     </div>
 
     <script>
-function salvarChecklist() {
-
-    const dados = {};
+;
 
     document.querySelectorAll('input, select, textarea').forEach(el => {
 
@@ -520,14 +515,7 @@ function salvarChecklist() {
             if (tabId === 'orcamento') atualizarResumoVeiculo(); // garante resumo atualizado ao abrir Peças
         }
 
-        function salvarChecklist() {
-            const placa = document.getElementById('placa').value;
-            if (!placa) {
-                alert("Por favor, preencha pelo menos a PLACA para salvar.");
-                return;
-            }
-
-            const formData = {};
+        const formData = {};
             const elements = document.getElementById('checklistForm').elements;
 
             for (let i = 0; i < elements.length; i++) {
@@ -686,27 +674,7 @@ function salvarChecklist() {
             carregarHistorico();
         }
 
-        function gerarPDF() {
-            const elemento = document.querySelector('.container');
-
-            const originalBodyOverflow = document.body.style.overflow;
-            const originalBodyPadding = document.body.style.padding;
-            const originalContainerMargin = elemento.style.margin;
-            const originalContainerBoxShadow = elemento.style.boxShadow;
-
-            window.scrollTo(0, 0);
-            document.body.style.overflow = 'visible';
-            document.body.style.padding = '0';
-            elemento.style.margin = '0 auto';
-            elemento.style.boxShadow = 'none';
-
-            const botoes = document.querySelectorAll('button, .tabs, .header-badge, .action-buttons');
-            botoes.forEach(btn => btn.style.display = 'none');
-
-            const opt = {
-                margin:       [0, 0, 0, 0],
-                filename:     'Checklist-' + document.getElementById('placa').value + '.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
+        ,
                 html2canvas:  {
                     scale: 2,
                     useCORS: true,
@@ -1226,12 +1194,13 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="app.js"></script>
 <script src="wizard.js"></script>
 <script src="os_system.js"></script>
+<script src="pdf_generator.js"></script>
 <script src="setup_buttons.js"></script>
 <script>
 // ==========================================
 // 1. VARIÁVEIS GLOBAIS
 // ==========================================
-let itensOrcamento = []; // Lista de peças/serviços
+let itensOrcamento = []; 
 
 // ==========================================
 // 2. NAVEGAÇÃO ENTRE ABAS (FIXA)
@@ -1243,36 +1212,31 @@ function switchTab(tabId) {
     const target = document.getElementById(tabId);
     if (target) {
         target.classList.add('active');
-        
-        // Ativa o botão correspondente
+
+        // Ativa botões
         document.querySelectorAll('.tab-button').forEach(btn => {
-            if (btn.getAttribute('onclick')?.includes(tabId)) {
-                btn.classList.add('active');
-            }
+            const oc = btn.getAttribute('onclick');
+            if (oc && oc.includes(tabId)) btn.classList.add('active');
         });
 
-        // Ações específicas ao abrir abas
         if (tabId === 'historico') carregarHistorico();
         if (tabId === 'relatorios') atualizarRelatorios();
         if (tabId === 'orcamento') {
             atualizarResumoVeiculo();
-            renderizarTabela(); // Garante que a tabela apareça
+            renderizarTabela();
         }
     }
 }
 
 // ==========================================
-// 3. PEÇAS E SERVIÇOS (TABELA DUPLA)
+// 3. PEÇAS E SERVIÇOS
 // ==========================================
 function adicionarItemManual() {
     const desc = document.getElementById('descricaoItem').value;
     const val = document.getElementById('valorItem').value;
     const tipo = document.querySelector('input[name="tipoItem"]:checked')?.value || 'peca';
 
-    if (!desc || !val) {
-        alert("Preencha descrição e valor!");
-        return;
-    }
+    if (!desc || !val) { alert("Preencha descrição e valor!"); return; }
 
     itensOrcamento.push({
         id: Date.now(),
@@ -1282,7 +1246,6 @@ function adicionarItemManual() {
     });
 
     renderizarTabela();
-    
     document.getElementById('descricaoItem').value = '';
     document.getElementById('valorItem').value = '';
     document.getElementById('descricaoItem').focus();
@@ -1291,12 +1254,12 @@ function adicionarItemManual() {
 function renderizarTabela() {
     const tbodyPecas = document.getElementById('tabelaPecas');
     const tbodyServicos = document.getElementById('tabelaServicos');
-    
+
     if (!tbodyPecas || !tbodyServicos) return;
 
     tbodyPecas.innerHTML = '';
     tbodyServicos.innerHTML = '';
-    
+
     let totalP = 0;
     let totalS = 0;
 
@@ -1311,18 +1274,13 @@ function renderizarTabela() {
             </td>
         `;
 
-        if (item.tipo === 'peca') {
-            tbodyPecas.appendChild(tr);
-            totalP += item.valor;
-        } else {
-            tbodyServicos.appendChild(tr);
-            totalS += item.valor;
-        }
+        if (item.tipo === 'peca') { tbodyPecas.appendChild(tr); totalP += item.valor; } 
+        else { tbodyServicos.appendChild(tr); totalS += item.valor; }
     });
 
-    if (document.getElementById('totalPecas')) document.getElementById('totalPecas').innerText = `R$ ${totalP.toFixed(2)}`;
-    if (document.getElementById('totalServicos')) document.getElementById('totalServicos').innerText = `R$ ${totalS.toFixed(2)}`;
-    if (document.getElementById('totalGeralFinal')) document.getElementById('totalGeralFinal').innerText = `R$ ${(totalP + totalS).toFixed(2)}`;
+    if(document.getElementById('totalPecas')) document.getElementById('totalPecas').innerText = `R$ ${totalP.toFixed(2)}`;
+    if(document.getElementById('totalServicos')) document.getElementById('totalServicos').innerText = `R$ ${totalS.toFixed(2)}`;
+    if(document.getElementById('totalGeralFinal')) document.getElementById('totalGeralFinal').innerText = `R$ ${(totalP + totalS).toFixed(2)}`;
 }
 
 function removerItem(id) {
@@ -1331,14 +1289,11 @@ function removerItem(id) {
 }
 
 // ==========================================
-// 4. SALVAR E CARREGAR CHECKLIST
+// 4. SALVAR E CARREGAR
 // ==========================================
 function salvarChecklist() {
     const placa = document.getElementById('placa').value;
-    if (!placa) {
-        alert("Preencha a PLACA para salvar.");
-        return;
-    }
+    if (!placa) { alert("Preencha a PLACA para salvar."); return; }
 
     const formData = {};
     document.querySelectorAll('input, select, textarea').forEach(el => {
@@ -1356,7 +1311,7 @@ function salvarChecklist() {
     const checklist = {
         id: Date.now(),
         data_criacao: new Date().toISOString(),
-        itensOrcamento: itensOrcamento, // Salva o array global
+        itensOrcamento: itensOrcamento,
         ...formData
     };
 
@@ -1375,22 +1330,17 @@ function carregarChecklist(id) {
 
     if (item) {
         switchTab('novo-checklist');
-
         for (const key in item) {
             const el = document.getElementsByName(key)[0];
-            if (el && el.type !== 'checkbox' && el.type !== 'file') {
-                el.value = item[key];
-            }
+            if (el && el.type !== 'checkbox' && el.type !== 'file') el.value = item[key];
         }
-
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        ['equipamentos', 'caracteristicas', 'cambio', 'tracao'].forEach(grupo => {
-            if (item[grupo]) item[grupo].forEach(val => {
-                const cb = document.querySelector(`input[name="${grupo}"][value="${val}"]`);
+        ['equipamentos', 'caracteristicas', 'cambio', 'tracao'].forEach(gp => {
+            if (item[gp]) item[gp].forEach(val => {
+                const cb = document.querySelector(`input[name="${gp}"][value="${val}"]`);
                 if (cb) cb.checked = true;
             });
         });
-
         itensOrcamento = item.itensOrcamento || []; 
         renderizarTabela(); 
         atualizarResumoVeiculo();
@@ -1405,79 +1355,7 @@ function limparFormulario() {
 }
 
 // ==========================================
-// 5. FUNÇÕES AUXILIARES (HISTÓRICO, RELATÓRIOS, ETC)
-// ==========================================
-function atualizarResumoVeiculo() {
-    const placa = document.getElementById('placa').value || '-';
-    const modelo = document.getElementById('modelo').value || '-';
-    const chassi = document.getElementById('chassi').value || '-';
-    const km = document.getElementById('km_entrada').value || '-';
-    const data = document.getElementById('data').value || '-';
-    const hora = document.getElementById('hora').value || '-';
-    const combustivel = document.getElementById('combustivel').value || '-';
-
-    ['resumoPlaca', 'resumoPlaca2', 'resumoPlaca3'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = placa; });
-    ['resumoModelo', 'resumoModelo2', 'resumoModelo3'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = modelo; });
-    
-    if(document.getElementById('resumoChassi')) document.getElementById('resumoChassi').innerText = chassi;
-    if(document.getElementById('resumoKmEntrada')) document.getElementById('resumoKmEntrada').innerText = km;
-    if(document.getElementById('resumoData')) document.getElementById('resumoData').innerText = data;
-    if(document.getElementById('resumoHora')) document.getElementById('resumoHora').innerText = hora;
-    if(document.getElementById('resumoCombustivel')) document.getElementById('resumoCombustivel').innerText = combustivel;
-}
-
-function carregarHistorico() {
-    const listaDiv = document.getElementById('checklistsList');
-    const emptyMsg = document.getElementById('emptyMessage');
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-
-    if (!listaDiv) return;
-    listaDiv.innerHTML = '';
-
-    if (checklists.length === 0) {
-        if (emptyMsg) emptyMsg.style.display = 'block';
-        return;
-    } else {
-        if (emptyMsg) emptyMsg.style.display = 'none';
-    }
-
-    checklists.slice().reverse().forEach(item => {
-        const dataFormatada = new Date(item.data_criacao).toLocaleDateString('pt-BR');
-        const horaFormatada = new Date(item.data_criacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-
-        const card = document.createElement('div');
-        card.className = 'checklist-item';
-        card.innerHTML = `
-            <div class="checklist-info">
-                <h4>${(item.placa || '').toUpperCase()} - ${item.modelo || 'Modelo não inf.'}</h4>
-                <p>📅 ${dataFormatada} às ${horaFormatada} | 👤 ${item.nome_cliente || 'Cliente não inf.'}</p>
-            </div>
-            <div class="checklist-actions">
-                <button class="btn-small btn-secondary" onclick="carregarChecklist(${item.id})">✏️ Editar</button>
-                <button class="btn-small btn-danger" onclick="excluirChecklist(${item.id})">🗑️</button>
-            </div>
-        `;
-        listaDiv.appendChild(card);
-    });
-}
-
-function excluirChecklist(id) {
-    if (confirm("Tem certeza que deseja excluir?")) {
-        let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-        checklists = checklists.filter(c => c.id !== id);
-        localStorage.setItem('checklists', JSON.stringify(checklists));
-        carregarHistorico();
-    }
-}
-
-function atualizarRelatorios() {
-    // Implementação básica de relatórios para não dar erro
-    const db = JSON.parse(localStorage.getItem('checklists') || '[]');
-    if(document.getElementById('totalChecklists')) document.getElementById('totalChecklists').innerText = db.length;
-}
-
-// ==========================================
-// 6. GERADOR DE PDF (LAYOUT A4 CENTRALIZADO)
+// 5. PDF DEFINITIVO (A4 CENTRALIZADO)
 // ==========================================
 window.emitirOS = async function() {
     const getBase64ImageFromUrl = async (imageUrl) => {
@@ -1614,7 +1492,7 @@ window.emitirOS = async function() {
         background: 'rgba(50,50,50,1)', zIndex: '9999999', overflow: 'auto',
         display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px'
     });
-    
+
     const container = document.createElement('div');
     container.innerHTML = conteudoPDF;
     Object.assign(container.style, { width: '794px', minWidth: '794px', background: 'white', boxShadow: '0 0 15px rgba(0,0,0,0.5)' });
@@ -1648,16 +1526,14 @@ window.emitirOS = async function() {
         document.body.removeChild(msg);
     }
 };
-    window.gerarPDF = window.emitirOS; 
 
+// --- IMPORTANTE: GARANTE QUE O BOTÃO ANTIGO FUNCIONE ---
+window.gerarPDF = window.emitirOS;
 </script>
-
 
 
 </body>
 </html>
-
-
 
 
 
