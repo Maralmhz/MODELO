@@ -1225,8 +1225,6 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="config.js"></script>
 <script src="app.js"></script>
 <script src="wizard.js"></script>
-<script src="os_system.js"></script>
-<script src="setup_buttons.js"></script>
 <script>
 // ✅ VERSÃO DEFINITIVA: SÓ O PDF (NÃO MEXE NO RESTO)
 window.emitirOS = async function() {
@@ -1376,18 +1374,19 @@ window.emitirOS = async function() {
     </div>
     `;
 
-    // 6. GERA E SALVA (Versão à prova de falhas)
+     // 6. GERA E SALVA (Versão Estável)
     const divTemp = document.createElement('div');
     divTemp.innerHTML = conteudoPDF;
-    
-    // Importante: Tem que estar visível pro html2canvas pegar
-    divTemp.style.position = 'absolute';
-    divTemp.style.left = '-9999px'; // Esconde da visão, mas existe
+
+    // Truque: Deixa visível mas "atrás" de tudo
+    divTemp.style.position = 'fixed';
+    divTemp.style.left = '0';
     divTemp.style.top = '0';
-    divTemp.style.width = '700px'; // Largura fixa do A4
-    divTemp.style.background = '#fff';
-    
-    document.body.appendChild(divTemp); // Adiciona ao documento real
+    divTemp.style.width = '750px'; // Um pouco mais largo que A4
+    divTemp.style.zIndex = '-100'; // Fica atrás do site
+    divTemp.style.background = '#ffffff';
+
+    document.body.appendChild(divTemp);
 
     const opt = {
         margin: [5, 5, 5, 5],
@@ -1397,24 +1396,18 @@ window.emitirOS = async function() {
             scale: 2, 
             useCORS: true,
             scrollY: 0,
-            windowWidth: 800 // Força largura pra não cortar
+            windowWidth: 800 // Força a largura para não cortar
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
-        // Pequeno delay para garantir que imagens carregaram
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
+        await new Promise(r => setTimeout(r, 500)); // Espera 0.5s para renderizar imagens
         await html2pdf().set(opt).from(divTemp).save();
     } catch (e) {
-        alert('Erro ao gerar PDF: ' + e.message);
-        console.error(e);
+        alert('Erro PDF: ' + e.message);
     } finally {
-        // Remove só depois de acabar tudo
-        if (document.body.contains(divTemp)) {
-            document.body.removeChild(divTemp);
-        }
+        document.body.removeChild(divTemp);
     }
 
 };
@@ -1423,6 +1416,7 @@ window.emitirOS = async function() {
 
 </body>
 </html>
+
 
 
 
