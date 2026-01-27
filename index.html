@@ -1294,56 +1294,51 @@ window.emitirOS = async function() {
         htmlItens = '<tr><td colspan="3" style="text-align:center; padding:10px; color:#999;">Nenhum item lançado.</td></tr>';
     }
 
-    // 5. CONTEÚDO HTML
+        // 5. HTML DO PDF (SIMPLIFICADO PARA EVITAR CORTES)
     const conteudoPDF = `
-    <div style="font-family: Arial, sans-serif; background: #fff; padding: 30px; color: #333;">
+    <div id="folha-a4" style="font-family: Arial, sans-serif; background: #fff; width: 700px; padding: 40px; color: #333; margin: auto;">
         
         <!-- HEADER -->
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #cc0000; padding-bottom: 15px; margin-bottom: 20px;">
-            <div style="width: 100px; display:flex; align-items:center;">
-                ${logoSrc ? `<img src="${logoSrc}" style="max-height: 70px; max-width: 100%;">` : ''}
-            </div>
-            <div style="text-align: right; flex: 1;">
-                <h2 style="margin: 0; color: #cc0000; text-transform: uppercase; font-size: 20px;">${dados.oficina}</h2>
-                <p style="margin: 2px 0; font-size: 11px; color: #666;">${dados.sub}</p>
-                <p style="margin: 2px 0; font-size: 12px; font-weight: bold;">${dados.tel_oficina}</p>
-                <p style="margin: 2px 0; font-size: 11px;">${dados.end_oficina}</p>
-            </div>
-        </div>
+        <table style="width: 100%; border-bottom: 3px solid #cc0000; margin-bottom: 20px; padding-bottom: 10px;">
+            <tr>
+                <td style="width: 120px; vertical-align: middle;">
+                    ${logoSrc ? `<img src="${logoSrc}" style="max-height: 80px; max-width: 100%;">` : ''}
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <h2 style="margin: 0; color: #cc0000; text-transform: uppercase; font-size: 20px;">${dados.oficina}</h2>
+                    <p style="margin: 2px 0; font-size: 11px; color: #666;">${dados.sub}</p>
+                    <p style="margin: 2px 0; font-size: 12px; font-weight: bold;">${dados.tel_oficina}</p>
+                    <p style="margin: 2px 0; font-size: 11px;">${dados.end_oficina}</p>
+                </td>
+            </tr>
+        </table>
 
         <!-- TÍTULO -->
-        <div style="background: #f4f4f4; padding: 8px 15px; border-left: 5px solid #cc0000; display: flex; justify-content: space-between; margin-bottom: 20px;">
-            <span style="font-weight: bold; font-size: 14px;">ORDEM DE SERVIÇO</span>
-            <span style="font-weight: bold; color: #cc0000; font-size: 16px;">${dados.placa}</span>
+        <div style="background: #f4f4f4; padding: 10px; border-left: 6px solid #cc0000; display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <strong style="font-size: 16px;">ORDEM DE SERVIÇO</strong>
+            <strong style="color: #cc0000; font-size: 18px;">${dados.placa}</strong>
         </div>
 
-        <!-- DADOS -->
-        <div style="display: flex; gap: 20px; margin-bottom: 20px; font-size: 12px;">
-            <div style="flex: 1;">
-                <h3 style="margin-top:0; color: #cc0000; border-bottom: 1px solid #ccc; font-size: 12px; padding-bottom: 5px;">CLIENTE</h3>
-                <p style="margin: 3px 0;"><strong>Nome:</strong> ${dados.cliente}</p>
-                <p style="margin: 3px 0;"><strong>Doc:</strong> ${dados.doc}</p>
-                <p style="margin: 3px 0;"><strong>Tel:</strong> ${dados.tel}</p>
-                <p style="margin: 3px 0;"><strong>End:</strong> ${dados.endereco}</p>
-            </div>
-            <div style="flex: 1;">
-                <h3 style="margin-top:0; color: #cc0000; border-bottom: 1px solid #ccc; font-size: 12px; padding-bottom: 5px;">VEÍCULO</h3>
-                <p style="margin: 3px 0;"><strong>Modelo:</strong> ${dados.modelo}</p>
-                <p style="margin: 3px 0;"><strong>KM:</strong> ${dados.km}</p>
-                <p style="margin: 3px 0;"><strong>Entrada:</strong> ${dados.data} ${dados.hora}</p>
-            </div>
-        </div>
+        <!-- DADOS (USANDO TABLE PRA NÃO QUEBRAR) -->
+        <table style="width: 100%; margin-bottom: 20px; font-size: 12px;">
+            <tr>
+                <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                    <h3 style="margin:0 0 5px 0; color: #cc0000; border-bottom: 1px solid #ccc; font-size: 12px;">CLIENTE</h3>
+                    <div style="margin-bottom: 4px;"><strong>Nome:</strong> ${dados.cliente}</div>
+                    <div style="margin-bottom: 4px;"><strong>Doc:</strong> ${dados.doc}</div>
+                    <div style="margin-bottom: 4px;"><strong>Tel:</strong> ${dados.tel}</div>
+                </td>
+                <td style="width: 50%; vertical-align: top;">
+                    <h3 style="margin:0 0 5px 0; color: #cc0000; border-bottom: 1px solid #ccc; font-size: 12px;">VEÍCULO</h3>
+                    <div style="margin-bottom: 4px;"><strong>Modelo:</strong> ${dados.modelo}</div>
+                    <div style="margin-bottom: 4px;"><strong>KM:</strong> ${dados.km}</div>
+                    <div style="margin-bottom: 4px;"><strong>Entrada:</strong> ${dados.data} ${dados.hora}</div>
+                </td>
+            </tr>
+        </table>
 
-        <!-- SOLICITAÇÃO -->
-        <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 12px; background: #eee; padding: 5px; margin-bottom: 0;">SERVIÇOS SOLICITADOS</h3>
-            <div style="border: 1px solid #ddd; padding: 10px; font-size: 11px; min-height: 40px; border-radius: 4px;">
-                ${dados.servicos_txt || 'Nenhuma observação.'}
-            </div>
-        </div>
-
-        <!-- TABELA -->
-        <div style="margin-bottom: 20px;">
+        <!-- TABELA ITENS -->
+        <div style="margin-bottom: 30px;">
             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                 <thead>
                     <tr style="background: #333; color: white;">
@@ -1354,88 +1349,80 @@ window.emitirOS = async function() {
                 </thead>
                 <tbody>${htmlItens}</tbody>
                 <tfoot>
-                    <tr style="background: #f9f9f9; font-weight: bold; font-size: 14px;">
-                        <td colspan="2" style="padding: 10px; text-align: right;">TOTAL:</td>
-                        <td style="padding: 10px; text-align: right; color: #28a745;">R$ ${total.toFixed(2)}</td>
+                    <tr style="background: #f9f9f9; font-weight: bold;">
+                        <td colspan="2" style="padding: 10px; text-align: right; border-top: 2px solid #ccc;">TOTAL:</td>
+                        <td style="padding: 10px; text-align: right; border-top: 2px solid #ccc; color: #28a745; font-size: 14px;">R$ ${total.toFixed(2)}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
 
-        <!-- ASSINATURAS -->
-        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-            <div style="text-align: center; width: 40%; border-top: 1px solid #000; padding-top: 5px; font-size: 10px;">Assinatura Oficina</div>
-            <div style="text-align: center; width: 40%; border-top: 1px solid #000; padding-top: 5px; font-size: 10px;">Assinatura Cliente</div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px; font-size: 9px; color: #999;">
+        <!-- RODAPÉ -->
+        <div style="text-align: center; font-size: 10px; color: #999; margin-top: 50px; border-top: 1px solid #eee; padding-top: 10px;">
             Gerado em ${new Date().toLocaleString()}
         </div>
     </div>
     `;
 
-    // 6. GERAÇÃO (OVERLAY VISÍVEL OBRIGATÓRIO)
+    // 6. GERAÇÃO (MÉTODO CLONE - INFALÍVEL)
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed';
     overlay.style.top = '0';
     overlay.style.left = '0';
-    overlay.style.width = '100%';
-    overlay.style.height = '100%';
-    overlay.style.background = 'rgba(0,0,0,0.8)'; // Fundo escuro pra você ver que abriu
-    overlay.style.zIndex = '999999';
-    overlay.style.display = 'flex';
-    overlay.style.justifyContent = 'center';
-    overlay.style.overflowY = 'auto'; // Scroll se necessário
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(255,255,255,1)'; // Fundo branco sólido
+    overlay.style.zIndex = '9999999';
+    overlay.style.overflow = 'auto'; // Importante para scrollar
+    overlay.style.padding = '20px';
+    overlay.style.boxSizing = 'border-box';
     
-    // Onde o PDF será desenhado (Folha A4 visível)
-    const sheet = document.createElement('div');
-    sheet.innerHTML = conteudoPDF;
-    sheet.style.width = '700px'; 
-    sheet.style.background = 'white';
-    sheet.style.padding = '0';
-    sheet.style.margin = '20px auto'; // Centraliza
-    sheet.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+    // Container do Papel
+    const container = document.createElement('div');
+    container.innerHTML = conteudoPDF;
+    container.style.width = '750px'; // Fixo
+    container.style.margin = '0 auto';
+    container.style.background = 'white';
 
-    overlay.appendChild(sheet);
+    overlay.appendChild(container);
     document.body.appendChild(overlay);
 
-    // Mensagem de loading
     const msg = document.createElement('div');
-    msg.innerText = "⏳ Gerando PDF... Por favor, aguarde.";
+    msg.innerText = "⏳ BAIXANDO PDF...";
     msg.style.position = 'fixed';
-    msg.style.top = '10px';
+    msg.style.top = '20px';
     msg.style.left = '50%';
     msg.style.transform = 'translateX(-50%)';
-    msg.style.background = 'yellow';
+    msg.style.background = 'gold';
     msg.style.padding = '10px 20px';
     msg.style.fontWeight = 'bold';
-    msg.style.zIndex = '1000000';
+    msg.style.zIndex = '10000000';
     document.body.appendChild(msg);
 
-    // Configuração do html2pdf
     const opt = {
-        margin: [5, 5, 5, 5],
+        margin: 0,
         filename: `OS_${dados.placa}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
             scale: 2, 
             useCORS: true, 
-            scrollY: 0,
-            windowWidth: 800
+            scrollY: 0, 
+            windowWidth: 1024 
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
-        window.scrollTo(0, 0); // Sobe a tela
-        await new Promise(r => setTimeout(r, 1000)); // Espera 1s visualizando o papel
-        await html2pdf().set(opt).from(sheet).save();
+        window.scrollTo(0, 0);
+        await new Promise(r => setTimeout(r, 1000));
+        await html2pdf().set(opt).from(container).save();
     } catch (e) {
         alert('Erro: ' + e.message);
     } finally {
         document.body.removeChild(overlay);
         document.body.removeChild(msg);
     }
+
 };
 
 </script>
@@ -1443,6 +1430,7 @@ window.emitirOS = async function() {
 
 </body>
 </html>
+
 
 
 
