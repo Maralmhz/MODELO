@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Serviços e Peças</title>
+    <style>
+        /* ═══════════════════════════════════════════════════════ */
+        /* RESET E VARIÁVEIS GLOBAIS                               */
+        /* ═══════════════════════════════════════════════════════ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #555555;
+            --color-dark: #222222;
+            --color-text: #333333;
+            --color-border: #dddddd;
+            --color-light-bg: #f7f7f7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* LAYOUT PARA TELA E IMPRESSÃO                            */
+        /* ═══════════════════════════════════════════════════════ */
+        .relatorio-container {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            padding: 0;
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        @media screen {
+            body {
+                background-color: #f0f0f0;
+                padding: 20px;
+            }
+            .relatorio-container {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* CABEÇALHO (IDÊNTICO AO CHECKLIST)                       */
+        /* ═══════════════════════════════════════════════════════ */
+        .relatorio-header {
+            background: #ffffff;
+            color: var(--color-primary);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 4px solid var(--color-primary);
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .logo-container {
+            width: 100px;
+            height: 100px;
+            background-color: transparent;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .header-content h1 {
+            font-size: 22px;
+            margin-bottom: 3px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .header-content p {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            color: #555555;
+        }
+
+        .contato-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            opacity: 0.9;
+            font-family: monospace;
+            margin-top: 3px;
+        }
+
+        .whatsapp-icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .endereco-oficina {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 2px;
+            font-family: monospace;
+        }
+
+        .header-badge {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: var(--color-primary);
+            color: #ffffff;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* CONTEÚDO PRINCIPAL                                      */
+        /* ═══════════════════════════════════════════════════════ */
+        .relatorio-content {
+            padding: 0 20px;
+        }
+
+        /* ─────────────────────────────────────────────────────── */
+        /* SEÇÃO DE INFORMAÇÕES ADMINISTRATIVAS                   */
+        /* ─────────────────────────────────────────────────────── */
+        .info-administrativa {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-field label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #666666;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .info-field value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-primary);
+            font-family: monospace;
+        }
+
+        /* ─────────────────────────────────────────────────────── */
+        /* DADOS DO CLIENTE                                        */
+        /* ─────────────────────────────────────────────────────── */
+        .cliente-veiculo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--color-light-bg);
+            border-radius: 6px;
+            border: 1px solid var(--color-border);
+        }
+
+        .cliente-block h3,
+        .veiculo-block h3 {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .dados-linha {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 6px;
+        }
+
+        .dados-linha label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #666666;
+            text-transform: uppercase;
+        }
+
+        .dados-linha value {
+            font-size: 12px;
+            color: var(--color-text);
+            font-weight: 500;
+        }
+
+        /* ─────────────────────────────────────────────────────── */
+        /* TABELA DE ITENS                                         */
+        /* ─────────────────────────────────────────────────────── */
+        .tabela-itens {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .tabela-itens thead {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+
+        .tabela-itens th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .tabela-itens th:nth-child(2),
+        .tabela-itens td:nth-child(2),
+        .tabela-itens th:nth-child(3),
+        .tabela-itens td:nth-child(3),
+        .tabela-itens th:nth-child(4),
+        .tabela-itens td:nth-child(4) {
+            text-align: right;
+        }
+
+        .tabela-itens tbody tr {
+            border-bottom: 1px solid var(--color-border);
+            transition: background-color 0.2s;
+        }
+
+        .tabela-itens tbody tr:nth-child(odd) {
+            background-color: #fafafa;
+        }
+
+        .tabela-itens tbody tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        .tabela-itens td {
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        /* ─────────────────────────────────────────────────────── */
+        /* RESUMO FINANCEIRO                                       */
+        /* ─────────────────────────────────────────────────────── */
+        .resumo-financeiro {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .resumo-box {
+            width: 250px;
+            border: 2px solid var(--color-primary);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .resumo-linha {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .resumo-linha label {
+            font-weight: 600;
+            color: #666666;
+        }
+
+        .resumo-linha value {
+            font-weight: 600;
+            color: var(--color-text);
+            font-family: monospace;
+        }
+
+        .resumo-linha.total {
+            background-color: var(--color-primary);
+            color: #ffffff;
+            border-bottom: none;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .resumo-linha.total label,
+        .resumo-linha.total value {
+            color: #ffffff;
+        }
+
+        /* ─────────────────────────────────────────────────────── */
+        /* SEÇÃO DE INSPEÇÃO DO CHECKLIST                          */
+        /* ─────────────────────────────────────────────────────── */
+        .secao-checklist {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+        }
+
+        .titulo-checklist {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .grid-checklist {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .categoria-checklist {
+            background-color: var(--color-light-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .categoria-checklist-titulo {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .item-checklist {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            font-size: 11px;
+            color: var(--color-text);
+        }
+
+        .item-checklist:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .status-icon.sim {
+            background-color: #27ae60;
+            color: #ffffff;
+        }
+
+        .status-icon.nao {
+            background-color: #e74c3c;
+            color: #ffffff;
+        }
+
+        /* ─────────────────────────────────────────────────────── */
+        /* SEÇÃO DE NOTAS E OBSERVAÇÕES                            */
+        /* ─────────────────────────────────────────────────────── */
+        .notas-observacoes {
+            margin-bottom: 20px;
+            padding: 12px;
+            background-color: var(--color-light-bg);
+            border-left: 4px solid var(--color-primary);
+            border-radius: 4px;
+            font-size: 11px;
+            color: #555555;
+            line-height: 1.4;
+            min-height: 40px;
+        }
+
+        /* ─────────────────────────────────────────────────────── */
+        /* RODAPÉ                                                  */
+        /* ─────────────────────────────────────────────────────── */
+        .relatorio-footer {
+            padding: 20px;
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 40px;
+            font-size: 11px;
+        }
+
+        .assinatura-bloco {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .linha-assinatura {
+            width: 150px;
+            height: 1px;
+            background-color: var(--color-text);
+            margin-bottom: 3px;
+        }
+
+        .label-assinatura {
+            font-weight: 600;
+            color: #666666;
+            text-transform: uppercase;
+        }
+
+        .data-linha {
+            font-size: 11px;
+            color: #666666;
+            font-weight: 500;
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* ESTILOS PARA IMPRESSÃO (A4)                             */
+        /* ═══════════════════════════════════════════════════════ */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: #ffffff;
+            }
+            .relatorio-container {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+            .relatorio-header {
+                page-break-inside: avoid;
+            }
+            .cliente-veiculo {
+                page-break-inside: avoid;
+            }
+            .resumo-financeiro {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* BOTÕES E CONTROLES (APENAS NA TELA)                    */
+        /* ═══════════════════════════════════════════════════════ */
+        .controles-topo {
+            text-align: right;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-imprimir {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+
+        .btn-imprimir:hover {
+            background-color: #444444;
+        }
+
+        .btn-editar {
+            background-color: #ffffff;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        .btn-editar:hover {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+
+        @media print {
+            .controles-topo {
+                display: none;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════ */
+        /* RESPONSIVIDADE PARA TELA                                */
+        /* ═══════════════════════════════════════════════════════ */
+        @media screen and (max-width: 900px) {
+            .relatorio-container {
+                width: 100%;
+                box-shadow: none;
+            }
+            .relatorio-header {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+            .info-administrativa {
+                grid-template-columns: 1fr;
+            }
+            .cliente-veiculo {
+                grid-template-columns: 1fr;
+            }
+            .grid-checklist {
+                grid-template-columns: 1fr;
+            }
+            .relatorio-footer {
+                flex-direction: column;
+                align-items: center;
+            }
+            .assinatura-bloco {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="controles-topo">
+    <button class="btn btn-editar" onclick="editarRelatorio()">✏️ Editar</button>
+    <button class="btn btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
+</div>
+
+<div class="relatorio-container">
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- CABEÇALHO (IDÊNTICO AO APP)                             -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <div class="relatorio-header">
+        <div class="logo-container">
+            <img id="logoImg" src="logo.png" alt="Logo da Oficina">
+        </div>
+        <div class="header-content">
+            <h1 id="nomeOficina">OFICINA</h1>
+            <p id="subtituloOficina">Relatório de Serviços e Peças</p>
+            <div class="contato-info">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="whatsapp-icon">
+                <span id="telefoneOficina">(00) 00000-0000</span>
+            </div>
+            <div class="endereco-oficina" id="enderecoOficina">ENDEREÇO DA OFICINA</div>
+        </div>
+        <div class="header-badge">RELATÓRIO</div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- CONTEÚDO PRINCIPAL                                      -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <div class="relatorio-content">
+
+        <!-- INFORMAÇÕES ADMINISTRATIVAS -->
+        <div class="info-administrativa">
+            <div class="info-field">
+                <label>Nº Documento</label>
+                <value id="docNumero">OS-2026-00001</value>
+            </div>
+            <div class="info-field">
+                <label>Data do Serviço</label>
+                <value id="docData">27/01/2026</value>
+            </div>
+            <div class="info-field">
+                <label>CPF/CNPJ Cliente</label>
+                <value id="docCpfCnpj">000.000.000-00</value>
+            </div>
+        </div>
+
+        <!-- DADOS DO CLIENTE E VEÍCULO -->
+        <div class="cliente-veiculo">
+            <div class="cliente-block">
+                <h3>👤 Cliente</h3>
+                <div class="dados-linha">
+                    <label>Nome</label>
+                    <value id="clienteNome">Nome do Cliente</value>
+                </div>
+                <div class="dados-linha">
+                    <label>Endereço</label>
+                    <value id="clienteEndereco">Endereço do Cliente</value>
+                </div>
+                <div class="dados-linha">
+                    <label>Telefone</label>
+                    <value id="clienteTelefone">(31) 99999-9999</value>
+                </div>
+            </div>
+            <div class="veiculo-block">
+                <h3>🚗 Veículo</h3>
+                <div class="dados-linha">
+                    <label>Placa</label>
+                    <value id="veiculoPlaca">ABC-1234</value>
+                </div>
+                <div class="dados-linha">
+                    <label>Modelo</label>
+                    <value id="veiculoModelo">Fiat Uno Mille</value>
+                </div>
+                <div class="dados-linha">
+                    <label>Chassi / KM Entrada</label>
+                    <value id="veiculoChassi">12345678901234567 / 150.000 KM</value>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO DE INSPEÇÃO DO CHECKLIST -->
+        <div class="secao-checklist">
+            <h2 class="titulo-checklist">📋 INSPEÇÃO VEICULAR</h2>
+            <div id="checklistContainer" class="grid-checklist"></div>
+        </div>
+
+        <!-- TABELA DE ITENS -->
+        <table class="tabela-itens">
+            <thead>
+                <tr>
+                    <th>Descrição do Item</th>
+                    <th>Quantidade</th>
+                    <th>Valor Unitário</th>
+                    <th>Valor Total</th>
+                </tr>
+            </thead>
+            <tbody id="itensTabela">
+                <tr>
+                    <td>LANTERNA TRASEIRA DIREITA E ESQUERDA</td>
+                    <td>2</td>
+                    <td>R$ 245,00</td>
+                    <td>R$ 490,00</td>
+                </tr>
+                <tr>
+                    <td>KIT SENSOR DE RÉ ESTACIONAMENTO</td>
+                    <td>1</td>
+                    <td>R$ 1.050,00</td>
+                    <td>R$ 1.050,00</td>
+                </tr>
+                <tr>
+                    <td>MOLDURA TRASEIRA ESQUERDA PARACHO</td>
+                    <td>1</td>
+                    <td>R$ 156,00</td>
+                    <td>R$ 156,00</td>
+                </tr>
+                <tr>
+                    <td>MÃO DE OBRA - INSTALAÇÃO</td>
+                    <td>3</td>
+                    <td>R$ 50,00</td>
+                    <td>R$ 150,00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- RESUMO FINANCEIRO -->
+        <div class="resumo-financeiro">
+            <div class="resumo-box">
+                <div class="resumo-linha">
+                    <label>Subtotal:</label>
+                    <value id="subtotal">R$ 1.846,00</value>
+                </div>
+                <div class="resumo-linha">
+                    <label>Desconto:</label>
+                    <value id="desconto">R$ 0,00</value>
+                </div>
+                <div class="resumo-linha">
+                    <label>Impostos:</label>
+                    <value id="impostos">R$ 0,00</value>
+                </div>
+                <div class="resumo-linha total">
+                    <label>TOTAL:</label>
+                    <value id="total">R$ 1.846,00</value>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTAS / OBSERVAÇÕES -->
+        <div class="notas-observacoes" id="notasObservacoes">
+            💡 <strong>Notas:</strong> Após 5 dias de atraso será cobrado 5% de juros ao mês.
+        </div>
+
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- RODAPÉ                                                  -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <div class="relatorio-footer">
+        <div class="assinatura-bloco">
+            <div class="linha-assinatura"></div>
+            <div class="label-assinatura">Assinatura do Vendedor</div>
+            <div class="data-linha">Data: ____ / ____ / ______</div>
+        </div>
+        <div class="assinatura-bloco">
+            <div class="linha-assinatura"></div>
+            <div class="label-assinatura">Assinatura do Cliente</div>
+            <div class="data-linha">Data: ____ / ____ / ______</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Mapeamento de categorias do checklist
+    const categoriasChecklist = {
+        '🔧 ACESSÓRIOS OBRIGATÓRIOS': ['estepe', 'macaco', 'chave_roda', 'triangulo'],
+        '⛽ TIPO COMBUSTÍVEL': ['gasolina', 'etanol', 'gnv', 'diesel'],
+        '⚡ ELÉTRICOS': ['vidro_eletrico', 'trava_eletrica', 'buzina', 'bateria'],
+        '🔊 ELETRÔNICOS': ['radio', 'alarme_corta', 'antena', 'acendedor'],
+        '🛞 RODAS & PÁRA-BRISAS': ['calotas', 'rodas_liga', 'roda_ferro', 'para_brisa'],
+        '📦 DEMAIS ACESSÓRIOS': ['extintor', 'protetor_carter', 'chave_secreta', 'tapetes'],
+        '⭐ EQUIPAMENTOS PRINCIPAIS': ['ar', 'abs', 'airbag'],
+        '🔄 CÂMBIO': ['cambio_auto', 'cambio_manual'],
+        '🚙 TRAÇÃO': ['tracao_4x2', 'tracao_4x4']
+    };
+
+    // Função para renderizar o checklist
+    function renderizarChecklist(checklist) {
+        const container = document.getElementById('checklistContainer');
+        container.innerHTML = '';
+
+        for (const [categoria, items] of Object.entries(categoriasChecklist)) {
+            const catDiv = document.createElement('div');
+            catDiv.className = 'categoria-checklist';
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'categoria-checklist-titulo';
+            titleDiv.textContent = categoria;
+            catDiv.appendChild(titleDiv);
+
+            items.forEach(itemId => {
+                const isChecked = checklist[itemId] === true || checklist[itemId] === 'on';
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item-checklist';
+
+                const statusIcon = document.createElement('div');
+                statusIcon.className = `status-icon ${isChecked ? 'sim' : 'nao'}`;
+                statusIcon.textContent = isChecked ? '✓' : '✗';
+
+                const label = document.createElement('span');
+                label.textContent = formatarNomeItem(itemId);
+
+                itemDiv.appendChild(statusIcon);
+                itemDiv.appendChild(label);
+                catDiv.appendChild(itemDiv);
+            });
+
+            container.appendChild(catDiv);
+        }
+    }
+
+    // Função para formatar nome do item
+    function formatarNomeItem(itemId) {
+        const nomes = {
+            'estepe': 'Estepe',
+            'macaco': 'Macaco',
+            'chave_roda': 'Chave de Roda',
+            'triangulo': 'Triângulo',
+            'gasolina': 'Gasolina',
+            'etanol': 'Etanol',
+            'gnv': 'GNV',
+            'diesel': 'Diesel',
+            'vidro_eletrico': 'Vidro Elétrico',
+            'trava_eletrica': 'Trava Elétrica',
+            'buzina': 'Buzina',
+            'bateria': 'Bateria',
+            'radio': 'Rádio / Multimídia',
+            'alarme_corta': 'Alarme / Corta Corrente',
+            'antena': 'Antena',
+            'acendedor': 'Acendedor / Tomada 12V',
+            'calotas': 'Calotas',
+            'rodas_liga': 'Rodas de Liga',
+            'roda_ferro': 'Roda de Ferro',
+            'para_brisa': 'Parabrisa Trincado',
+            'extintor': 'Extintor',
+            'protetor_carter': 'Protetor de Carter',
+            'chave_secreta': 'Chave Segredo (Roda)',
+            'tapetes': 'Tapetes',
+            'ar': 'Ar Condicionado',
+            'abs': 'ABS',
+            'airbag': 'Air Bag',
+            'cambio_auto': 'Automático',
+            'cambio_manual': 'Manual',
+            'tracao_4x2': '4x2',
+            'tracao_4x4': '4x4'
+        };
+        return nomes[itemId] || itemId;
+    }
+
+    // Função para carregar dados de um checklist salvo
+    function carregarDados(checklist) {
+        if (!checklist) return;
+
+        // Dados administrativos
+        document.getElementById('docNumero').textContent = `OS-${new Date().getFullYear()}-${String(Math.random() * 10000).padStart(5, '0')}`;
+        document.getElementById('docData').textContent = new Date().toLocaleDateString('pt-BR');
+        document.getElementById('docCpfCnpj').textContent = checklist.cpf_cnpj || '---';
+
+        // Cliente
+        document.getElementById('clienteNome').textContent = checklist.nome_cliente || 'Nome não informado';
+        document.getElementById('clienteEndereco').textContent = checklist.endereco_cliente || 'Endereço não informado';
+        document.getElementById('clienteTelefone').textContent = checklist.celular_cliente || '---';
+
+        // Veículo
+        document.getElementById('veiculoPlaca').textContent = checklist.placa || '---';
+        document.getElementById('veiculoModelo').textContent = checklist.modelo || '---';
+        document.getElementById('veiculoChassi').textContent = `${checklist.chassi || '---'} / ${checklist.km_entrada || '---'} KM`;
+
+        // Observações
+        document.getElementById('notasObservacoes').innerHTML = 
+            `💡 <strong>Solicitado:</strong> ${checklist.servicos || 'Nenhum serviço informado'}`;
+
+        // Renderizar checklist
+        renderizarChecklist(checklist);
+    }
+
+    // Função para editar/voltar ao app
+    function editarRelatorio() {
+        alert('Função de edição será implementada em integração com seu app.');
+    }
+
+    // Carregar dados ao abrir (você pode passar dados via URL ou localStorage)
+    window.addEventListener('DOMContentLoaded', () => {
+        // Simulando carregamento de dados
+        const dadosArmazenados = localStorage.getItem('checklistAtual');
+        if (dadosArmazenados) {
+            carregarDados(JSON.parse(dadosArmazenados));
+        }
+    });
+</script>
+
+</body>
+</html>

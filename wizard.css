@@ -1,0 +1,106 @@
+/* Wizard (Etapas) – estilos isolados */
+
+.wizard {
+  display: block;
+}
+
+.wizard-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #ffffff;
+  padding: 14px 0 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 16px;
+}
+
+.wizard-progress {
+  height: 8px;
+  width: 100%;
+  background: #f0f0f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.wizard-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--color-primary);
+  transition: width 240ms ease;
+}
+
+.wizard-steps {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 2px 0 2px;
+  scrollbar-width: thin;
+}
+
+.wizard-step-pill {
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  background: #fafafa;
+  color: #333;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wizard-step-pill.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.wizard-step-pill.done {
+  border-color: var(--color-success);
+}
+
+.wizard-body {
+  min-height: 120px;
+}
+
+.wizard-step {
+  display: none;
+}
+
+.wizard-step.active {
+  display: block;
+}
+
+.wizard-footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.wizard-footer-right {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+#wizardPrev:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .wizard-header {
+    padding-top: 10px;
+  }
+  .wizard-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .wizard-footer-right {
+    width: 100%;
+  }
+}
