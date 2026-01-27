@@ -1376,32 +1376,53 @@ window.emitirOS = async function() {
     </div>
     `;
 
-    // 6. GERA E SALVA
+    // 6. GERA E SALVA (corrigido para não sair “em branco / no rodapé”)
     const divTemp = document.createElement('div');
     divTemp.innerHTML = conteudoPDF;
+
+    // coloca fora da tela, mas fixo no topo (evita captura “lá embaixo”)
+    divTemp.style.position = 'fixed';
+    divTemp.style.left = '-10000px';
+    divTemp.style.top = '0';
+    divTemp.style.width = '700px';
+
     document.body.appendChild(divTemp);
 
     const opt = {
         margin: [5, 5, 5, 5],
         filename: `OS_${dados.placa}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            scrollY: 0,
+            scrollX: 0,
+            backgroundColor: '#ffffff'
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
+        // garante topo antes de capturar
+        window.scrollTo(0, 0);
+
+        // dá tempo do navegador renderizar o divTemp antes do html2canvas
+        await new Promise(r => setTimeout(r, 300));
+
         await html2pdf().set(opt).from(divTemp).save();
     } catch (e) {
         alert('Erro PDF: ' + e.message);
     } finally {
         document.body.removeChild(divTemp);
     }
+
 };
 </script>
 
 
 </body>
 </html>
+
 
 
 
