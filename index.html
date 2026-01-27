@@ -520,45 +520,60 @@ function salvarChecklist() {
             if (tabId === 'orcamento') atualizarResumoVeiculo(); // garante resumo atualizado ao abrir Peças
         }
 
-        function salvarChecklist() {
-            const placa = document.getElementById('placa').value;
-            if (!placa) {
-                alert("Por favor, preencha pelo menos a PLACA para salvar.");
-                return;
-            }
+function salvarChecklist() {
+    const placa = document.getElementById('placa').value;
+    if (!placa) {
+        alert("Por favor, preencha pelo menos a PLACA para salvar.");
+        return;
+    }
 
-            const formData = {};
-            const elements = document.getElementById('checklistForm').elements;
+    // 1. Coleta dados do formulário
+    const formData = {};
+    const elements = document.getElementById('checklistForm').elements;
 
-            for (let i = 0; i < elements.length; i++) {
-                const item = elements[i];
-                if (item.name) {
-                    if (item.type === 'checkbox') {
-                        if (item.checked) {
-                            if (!formData[item.name]) formData[item.name] = [];
-                            formData[item.name].push(item.value);
-                        }
-                    } else if (item.type !== 'button') {
-                        formData[item.name] = item.value;
-                    }
+    for (let i = 0; i < elements.length; i++) {
+        const item = elements[i];
+        if (item.name) {
+            if (item.type === 'checkbox') {
+                if (item.checked) {
+                    if (!formData[item.name]) formData[item.name] = [];
+                    formData[item.name].push(item.value);
                 }
+            } else if (item.type !== 'button') {
+                formData[item.name] = item.value;
             }
-
-            const checklist = {
-                id: Date.now(),
-                data_criacao: new Date().toISOString(),
-                ...formData
-            };
-
-            let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-            checklists.push(checklist);
-            localStorage.setItem('checklists', JSON.stringify(checklists));
-
-            alert("✅ Checklist salvo com sucesso no Histórico!");
-            document.getElementById('checklistForm').reset();
-            atualizarResumoVeiculo();
-            switchTab('historico');
         }
+    }
+
+    // 2. Coleta Peças e Serviços (CORREÇÃO AQUI)
+    // Se a variável global não existir, usa array vazio
+    const itensSalvar = (typeof itensOrcamento !== 'undefined') ? itensOrcamento : [];
+
+    // 3. Cria o objeto final
+    const checklist = {
+        id: Date.now(),
+        data_criacao: new Date().toISOString(),
+        itensOrcamento: itensSalvar, // <--- SALVANDO AS PEÇAS NO HISTÓRICO
+        ...formData
+    };
+
+    // 4. Salva no Histórico
+    let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+    checklists.push(checklist);
+    localStorage.setItem('checklists', JSON.stringify(checklists));
+
+    alert("✅ Checklist e Orçamento salvos com sucesso!");
+    
+    // Limpeza
+    document.getElementById('checklistForm').reset();
+    if (typeof itensOrcamento !== 'undefined') {
+        itensOrcamento = []; // Limpa array de peças
+        if (typeof renderizarTabela === 'function') renderizarTabela(); // Limpa visual da tabela
+    }
+    
+    atualizarResumoVeiculo();
+    switchTab('historico');
+}
 
         function carregarHistorico() {
             const listaDiv = document.getElementById('checklistsList');
@@ -1228,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
 window.emitirOS = async function() {
     
-    // 1. HELPER PARA LOGO (Mesmo de antes, mas essencial)
+    // 1. HELPER PARA LOGO
     const getBase64ImageFromUrl = async (imageUrl) => {
         try {
             const res = await fetch(imageUrl);
@@ -1242,7 +1257,7 @@ window.emitirOS = async function() {
         } catch (e) { return null; }
     };
 
-    // 2. COLETA DADOS
+    // 2. COLETA DADOS BÁSICOS
     const getValue = (id) => document.getElementById(id)?.value || '';
     const getText = (id) => document.getElementById(id)?.innerText || '';
 
@@ -1253,65 +1268,60 @@ window.emitirOS = async function() {
         km: getValue('km_entrada') || '',
         data: getValue('data') || '',
         hora: getValue('hora') || '',
-        
         cliente: getValue('nome_cliente') || '',
         doc: getValue('cpf_cnpj') || '',
         tel: getValue('celular_cliente') || '',
         endereco: getValue('endereco_cliente') || '',
-        
         servicos_txt: getValue('servicos') || '',
-        
         oficina: getText('nome-oficina') || 'OFICINA',
         sub: getText('subtitulo-oficina') || '',
         tel_oficina: getText('telefone-oficina') || '',
         end_oficina: getText('endereco-oficina') || ''
-            // ... (depois de pegar os dados básicos)
+    };
 
-    // 2.1 COLETA CHECKLIST MARCADO
+    // 3. COLETA CHECKLIST (Visual Bonito)
     const itensChecklist = [];
     document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-        // Ignora checkbox interno de sistema, pega só os de inspeção
         if (cb.name === 'equipamentos' || cb.name === 'caracteristicas' || cb.name === 'cambio' || cb.name === 'tracao') {
-            // Pega o texto do label associado
             const label = document.querySelector(`label[for="${cb.id}"]`)?.innerText || cb.value;
             itensChecklist.push(label);
         }
     });
 
-    // Formata HTML do checklist (em colunas)
     let htmlChecklist = '';
     if (itensChecklist.length > 0) {
-        htmlChecklist = `<div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; margin-bottom: 20px;">`;
+        htmlChecklist = `<div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 10px; margin-bottom: 20px;">`;
         itensChecklist.forEach(item => {
             htmlChecklist += `
-                <div style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd;">
+                <div style="background: #f0f0f0; color: #333; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; white-space: nowrap;">
                     ✅ ${item}
                 </div>`;
         });
         htmlChecklist += `</div>`;
     } else {
-        htmlChecklist = `<p style="font-size: 11px; color: #999; font-style: italic;">Nenhum item de inspeção marcado.</p>`;
+        htmlChecklist = `<p style="font-size: 11px; color: #999; font-style: italic; margin-bottom: 20px;">Nenhum item de inspeção marcado.</p>`;
     }
 
-    };
-
-    // 3. PEGA LOGO
+    // 4. PEGA LOGO
     let logoSrc = '';
     const imgElement = document.getElementById('logo-oficina');
     if (imgElement && imgElement.src) {
         logoSrc = await getBase64ImageFromUrl(imgElement.src) || imgElement.src;
     }
 
-    // 4. TABELA DE ITENS
+    // 5. TABELA DE ITENS (PEÇAS/SERVIÇOS)
     let htmlItens = '';
     let total = 0;
     
-    if (typeof itensOrcamento !== 'undefined' && Array.isArray(itensOrcamento)) {
-        itensOrcamento.forEach(item => {
+    // Tenta pegar da variável global, se não existir tenta pegar do checklist carregado (se estiver editando)
+    const listaItens = (typeof itensOrcamento !== 'undefined') ? itensOrcamento : [];
+
+    if (Array.isArray(listaItens)) {
+        listaItens.forEach(item => {
             htmlItens += `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 6px;">${item.descricao}</td>
-                    <td style="padding: 6px; text-align: center;">${item.tipo === 'peca' ? 'PEÇA' : 'SERV'}</td>
+                    <td style="padding: 6px; text-align: center;">${(item.tipo === 'peca' ? 'PEÇA' : 'SERV')}</td>
                     <td style="padding: 6px; text-align: right;">R$ ${parseFloat(item.valor).toFixed(2)}</td>
                 </tr>`;
             total += parseFloat(item.valor);
@@ -1322,7 +1332,7 @@ window.emitirOS = async function() {
         htmlItens = '<tr><td colspan="3" style="text-align:center; padding:10px; color:#999;">Nenhum item lançado.</td></tr>';
     }
 
-        // 5. HTML DO PDF (SIMPLIFICADO PARA EVITAR CORTES)
+    // 6. MONTA O HTML DO PDF
     const conteudoPDF = `
     <div id="folha-a4" style="font-family: Arial, sans-serif; background: #fff; width: 700px; padding: 40px; color: #333; margin: auto;">
         
@@ -1347,7 +1357,7 @@ window.emitirOS = async function() {
             <strong style="color: #cc0000; font-size: 18px;">${dados.placa}</strong>
         </div>
 
-        <!-- DADOS (USANDO TABLE PRA NÃO QUEBRAR) -->
+        <!-- DADOS -->
         <table style="width: 100%; margin-bottom: 20px; font-size: 12px;">
             <tr>
                 <td style="width: 50%; vertical-align: top; padding-right: 20px;">
@@ -1373,9 +1383,9 @@ window.emitirOS = async function() {
             </div>
         </div>
 
-        <!-- NOVO: CHECKLIST DE ENTRADA -->
-        <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 12px; background: #eee; padding: 5px; margin-bottom: 10px;">INSPEÇÃO DE ENTRADA (Checklist)</h3>
+        <!-- INSPEÇÃO CHECKLIST -->
+        <div>
+            <h3 style="font-size: 12px; background: #eee; padding: 5px; margin-bottom: 10px;">INSPEÇÃO DE ENTRADA</h3>
             ${htmlChecklist}
         </div>
 
@@ -1406,23 +1416,22 @@ window.emitirOS = async function() {
     </div>
     `;
 
-    // 6. GERAÇÃO (MÉTODO CLONE - INFALÍVEL)
+    // 7. GERAÇÃO (MÉTODO CLONE - INFALÍVEL)
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed';
     overlay.style.top = '0';
     overlay.style.left = '0';
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
-    overlay.style.background = 'rgba(255,255,255,1)'; // Fundo branco sólido
+    overlay.style.background = 'rgba(255,255,255,1)'; 
     overlay.style.zIndex = '9999999';
-    overlay.style.overflow = 'auto'; // Importante para scrollar
+    overlay.style.overflow = 'auto';
     overlay.style.padding = '20px';
     overlay.style.boxSizing = 'border-box';
     
-    // Container do Papel
     const container = document.createElement('div');
     container.innerHTML = conteudoPDF;
-    container.style.width = '750px'; // Fixo
+    container.style.width = '750px';
     container.style.margin = '0 auto';
     container.style.background = 'white';
 
@@ -1445,12 +1454,7 @@ window.emitirOS = async function() {
         margin: 0,
         filename: `OS_${dados.placa}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true, 
-            scrollY: 0, 
-            windowWidth: 1024 
-        },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 1024 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
@@ -1464,7 +1468,6 @@ window.emitirOS = async function() {
         document.body.removeChild(overlay);
         document.body.removeChild(msg);
     }
-
 };
 
 </script>
@@ -1472,6 +1475,7 @@ window.emitirOS = async function() {
 
 </body>
 </html>
+
 
 
 
