@@ -56,11 +56,17 @@
 
                 <form id="checklistForm">
                     <div class="section-title">📋 INFORMAÇÕES DO VEÍCULO</div>
+                    <!-- NOVO CAMPO OS (ESTILO ANTIGO) -->
+<div class="form-row">
+    <div class="form-group">
+        <label for="numero_os">Nº OS (Gerado Automaticamente)</label>
+        <input type="text" id="numero_os" name="numero_os" readonly style="background-color: #f0f0f0; font-weight: bold; color: #333;">
+    </div>
+</div>
+
 
                     <!-- RESUMO FIXO DO VEÍCULO (VISUAL) -->
                     <div class="veiculo-resumo" id="resumoVeiculoPrincipal">
-                        <div class="veiculo-resumo-pill" style="background-color: #e41616; color: white;">
-    Nº OS: <strong id="resumoOS">-</strong>
                         <div class="veiculo-resumo-pill">Placa: <strong id="resumoPlaca">-</strong></div>
                         <div class="veiculo-resumo-pill">Modelo: <strong id="resumoModelo">-</strong></div>
                         <div class="veiculo-resumo-pill">Chassi: <strong id="resumoChassi">-</strong></div>
@@ -532,9 +538,10 @@
                 numeroOS = `${placa.toUpperCase()}${dataBR}`;
             }
             
-            // Atualiza o campo vermelho da OS
-            const elOS = document.getElementById('resumoOS');
-            if (elOS) elOS.textContent = numeroOS;
+// Atualiza o INPUT novo (estilo antigo)
+const elOS = document.getElementById('numero_os');
+if (elOS) elOS.value = numeroOS;
+
 
             // Atualiza o resto dos resumos (Padrão)
             document.getElementById('resumoPlaca').textContent = placa;
@@ -1601,6 +1608,7 @@ window.gerarPDF = window.emitirOS;
 
 </body>
 </html>
+
 
 
 
