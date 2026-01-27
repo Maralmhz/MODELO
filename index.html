@@ -59,6 +59,8 @@
 
                     <!-- RESUMO FIXO DO VEÍCULO (VISUAL) -->
                     <div class="veiculo-resumo" id="resumoVeiculoPrincipal">
+                        <div class="veiculo-resumo-pill" style="background-color: #e41616; color: white;">
+    Nº OS: <strong id="resumoOS">-</strong>
                         <div class="veiculo-resumo-pill">Placa: <strong id="resumoPlaca">-</strong></div>
                         <div class="veiculo-resumo-pill">Modelo: <strong id="resumoModelo">-</strong></div>
                         <div class="veiculo-resumo-pill">Chassi: <strong id="resumoChassi">-</strong></div>
@@ -69,42 +71,43 @@
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="placa">Placa *</label>
-                            <input type="text" id="placa" name="placa" placeholder="ABC-1234" maxlength="8" style="text-transform: uppercase;">
-                        </div>
-                        <div class="form-group">
-                            <label for="chassi">Chassi</label>
-                            <input type="text" id="chassi" name="chassi" placeholder="17 dígitos" maxlength="17">
-                        </div>
+                       <div class="form-group">
+    <label for="placa">Placa *</label>
+    <input type="text" id="placa" name="placa" placeholder="ABC-1234" maxlength="8" style="text-transform: uppercase;" onkeyup="atualizarResumoVeiculo()">
+</div>
+<div class="form-group">
+    <label for="chassi">Chassi</label>
+    <input type="text" id="chassi" name="chassi" placeholder="17 dígitos" maxlength="17" onkeyup="atualizarResumoVeiculo()">
+</div>
+                    </div>
+
+                    <div class="form-row">
+                       <div class="form-group">
+    <label for="modelo">Modelo</label>
+    <input type="text" id="modelo" name="modelo" placeholder="Ex: Fiat Uno" onkeyup="atualizarResumoVeiculo()">
+</div>
+<div class="form-group">
+    <label for="km_entrada">KM Entrada</label>
+    <input type="text" id="km_entrada" name="km_entrada" placeholder="150.000" onkeyup="atualizarResumoVeiculo()">
+</div>
+
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="modelo">Modelo</label>
-                            <input type="text" id="modelo" name="modelo" placeholder="Ex: Fiat Uno">
-                        </div>
-                        <div class="form-group">
-                            <label for="km_entrada">KM Entrada</label>
-                            <input type="text" id="km_entrada" name="km_entrada" placeholder="150.000">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="data">Data Entrada</label>
-                            <input type="date" id="data" name="data">
-                        </div>
-                        <div class="form-group">
-                            <label for="hora">Hora Entrada</label>
-                            <input type="time" id="hora" name="hora">
-                        </div>
+    <label for="data">Data Entrada</label>
+    <input type="date" id="data" name="data" onchange="atualizarResumoVeiculo()">
+</div>
+<div class="form-group">
+    <label for="hora">Hora Entrada</label>
+    <input type="time" id="hora" name="hora" onchange="atualizarResumoVeiculo()">
+</div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="combustivel">Nível Combustível</label>
-                            <select id="combustivel" name="combustivel">
+<select id="combustivel" name="combustivel" onchange="atualizarResumoVeiculo()">
                                 <option value="">Selecione...</option>
                                 <option value="cheio">Cheio</option>
                                 <option value="meio">Meio</option>
@@ -514,6 +517,50 @@
             if (tabId === 'relatorios') atualizarRelatorios();
             if (tabId === 'orcamento') atualizarResumoVeiculo(); // garante resumo atualizado ao abrir Peças
         }
+        function atualizarResumoVeiculo() {
+            // Pega os valores
+            const placa = document.getElementById('placa').value || '-';
+            const dataRaw = document.getElementById('data').value; // AAAA-MM-DD
+            
+            // --- LÓGICA DO NÚMERO DA OS (PLACA + DATA) ---
+            let numeroOS = '-';
+            if (placa !== '-' && dataRaw) {
+                // Transforma 2026-01-27 em 27/01/2026
+                const partes = dataRaw.split('-'); 
+                const dataBR = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                // Junta tudo: PLACA + DATA
+                numeroOS = `${placa.toUpperCase()}${dataBR}`;
+            }
+            
+            // Atualiza o campo vermelho da OS
+            const elOS = document.getElementById('resumoOS');
+            if (elOS) elOS.textContent = numeroOS;
+
+            // Atualiza o resto dos resumos (Padrão)
+            document.getElementById('resumoPlaca').textContent = placa;
+            document.getElementById('resumoModelo').textContent = document.getElementById('modelo').value || '-';
+            document.getElementById('resumoChassi').textContent = document.getElementById('chassi').value || '-';
+            document.getElementById('resumoKmEntrada').textContent = document.getElementById('km_entrada').value || '-';
+            document.getElementById('resumoData').textContent = dataRaw || '-';
+            document.getElementById('resumoHora').textContent = document.getElementById('hora').value || '-';
+            document.getElementById('resumoCombustivel').textContent = document.getElementById('combustivel').value || '-';
+            
+            // Resumos das outras abas
+            const elPlaca2 = document.getElementById('resumoPlaca2');
+            if(elPlaca2) elPlaca2.textContent = placa;
+
+            const elModelo2 = document.getElementById('resumoModelo2');
+            if(elModelo2) elModelo2.textContent = document.getElementById('modelo').value || '-';
+
+            const elChassi2 = document.getElementById('resumoChassi2');
+            if(elChassi2) elChassi2.textContent = document.getElementById('chassi').value || '-';
+
+            const elKm2 = document.getElementById('resumoKmEntrada2');
+            if(elKm2) elKm2.textContent = document.getElementById('km_entrada').value || '-';
+            
+            const elPlaca3 = document.getElementById('resumoPlaca3');
+            if (elPlaca3) elPlaca3.textContent = placa;
+        }
 
         const formData = {};
             const elements = document.getElementById('checklistForm').elements;
@@ -705,6 +752,26 @@ windowWidth: document.documentElement.offsetWidth
                 document.body.style.padding = originalBodyPadding;
             });
         }
+// --- FUNÇÃO NOVA: Puxa Data e Hora Automáticas ---
+function definirAgora() {
+    const agora = new Date();
+    
+    // Data (AAAA-MM-DD)
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    
+    // Hora (HH:MM)
+    const horas = String(agora.getHours()).padStart(2, '0');
+    const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+    // Preenche os campos se eles existirem
+    const campoData = document.getElementById('data');
+    const campoHora = document.getElementById('hora');
+    
+    if (campoData) campoData.value = `${ano}-${mes}-${dia}`;
+    if (campoHora) campoHora.value = `${horas}:${minutos}`;
+}
 
         function limparFormulario() {
             if (confirm("Limpar todos os campos do formulário?")) {
@@ -1534,6 +1601,7 @@ window.gerarPDF = window.emitirOS;
 
 </body>
 </html>
+
 
 
 
