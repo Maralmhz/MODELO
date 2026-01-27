@@ -1265,6 +1265,34 @@ window.emitirOS = async function() {
         sub: getText('subtitulo-oficina') || '',
         tel_oficina: getText('telefone-oficina') || '',
         end_oficina: getText('endereco-oficina') || ''
+            // ... (depois de pegar os dados básicos)
+
+    // 2.1 COLETA CHECKLIST MARCADO
+    const itensChecklist = [];
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+        // Ignora checkbox interno de sistema, pega só os de inspeção
+        if (cb.name === 'equipamentos' || cb.name === 'caracteristicas' || cb.name === 'cambio' || cb.name === 'tracao') {
+            // Pega o texto do label associado
+            const label = document.querySelector(`label[for="${cb.id}"]`)?.innerText || cb.value;
+            itensChecklist.push(label);
+        }
+    });
+
+    // Formata HTML do checklist (em colunas)
+    let htmlChecklist = '';
+    if (itensChecklist.length > 0) {
+        htmlChecklist = `<div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; margin-bottom: 20px;">`;
+        itensChecklist.forEach(item => {
+            htmlChecklist += `
+                <div style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd;">
+                    ✅ ${item}
+                </div>`;
+        });
+        htmlChecklist += `</div>`;
+    } else {
+        htmlChecklist = `<p style="font-size: 11px; color: #999; font-style: italic;">Nenhum item de inspeção marcado.</p>`;
+    }
+
     };
 
     // 3. PEGA LOGO
@@ -1336,6 +1364,20 @@ window.emitirOS = async function() {
                 </td>
             </tr>
         </table>
+        
+        <!-- SERVIÇOS SOLICITADOS -->
+        <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 12px; background: #eee; padding: 5px; margin-bottom: 0;">SERVIÇOS SOLICITADOS</h3>
+            <div style="border: 1px solid #ddd; padding: 10px; font-size: 11px; min-height: 40px; border-radius: 4px;">
+                ${dados.servicos_txt || 'Nenhuma observação.'}
+            </div>
+        </div>
+
+        <!-- NOVO: CHECKLIST DE ENTRADA -->
+        <div style="margin-bottom: 20px;">
+            <h3 style="font-size: 12px; background: #eee; padding: 5px; margin-bottom: 10px;">INSPEÇÃO DE ENTRADA (Checklist)</h3>
+            ${htmlChecklist}
+        </div>
 
         <!-- TABELA ITENS -->
         <div style="margin-bottom: 30px;">
@@ -1430,6 +1472,7 @@ window.emitirOS = async function() {
 
 </body>
 </html>
+
 
 
 
