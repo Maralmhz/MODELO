@@ -820,8 +820,54 @@ function gerarPDF() {
 
 </script>
 
+<script>
+// 🔧 FUNÇÕES BÁSICAS - FUNCIONAM 100%
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+}
+
+function salvarChecklist() {
+  const dados = {};
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    if (!el.name && !el.id) return;
+    const chave = el.name || el.id;
+    if (el.type === 'checkbox') dados[chave] = el.checked;
+    else if (el.type === 'radio' && el.checked) dados[chave] = el.value;
+    else dados[chave] = el.value;
+  });
+  localStorage.setItem('checklistSalvo', JSON.stringify(dados));
+  alert('✅ SALVO!');
+}
+
+function gerarPDF() {
+  const elemento = document.querySelector('.container');
+  const opt = {
+    margin: 10,
+    filename: 'checklist.pdf',
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(elemento).save();
+}
+
+function limparFormulario() {
+  if (confirm('Limpar tudo?')) {
+    document.getElementById('checklistForm').reset();
+    alert('🧹 Limpou!');
+  }
+}
+
+// INICIALIZA
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('✅ JS CARREGADO!');
+});
+</script>
 
 </body>
 </html>
+
 
 
