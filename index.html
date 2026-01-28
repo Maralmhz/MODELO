@@ -865,28 +865,45 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('✅ JS CARREGADO!');
 });
 <script>
-// PDF DEFINITIVO - FUNCIONA 100%
 function gerarPDF() {
-    const placa = document.getElementById('placa')?.value.toUpperCase() || 'SEM-PLACA';
-    const elemento = document.getElementById('novo-checklist');
+    // Pega placa primeiro (obrigatório)
+    const placaEl = document.getElementById('placa');
+    if (!placaEl || !placaEl.value) {
+        alert('❌ Preencha a PLACA primeiro!');
+        placaEl?.focus();
+        return;
+    }
     
+    const elemento = document.getElementById('novo-checklist');
     html2pdf()
         .set({
-            filename: `Checklist_${placa}.pdf`,
+            filename: `Checklist_${placaEl.value.toUpperCase()}.pdf`,
             margin: [15, 10, 10, 10],
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            html2canvas: { scale: 2, useCORS: true }
+            html2canvas: { scale: 2, useCORS: true, logging: false }
         })
         .from(elemento)
         .save()
         .then(() => alert('✅ PDF baixado!'))
-        .catch(err => alert('❌ Erro: ' + err));
+        .catch(err => console.error(err));
 }
 
+// Botão Salvar (você tem no histórico)
+function salvarChecklist() {
+    const dados = {};
+    document.querySelectorAll('input[name], select[name], textarea[name]').forEach(el => {
+        if (el.type === 'checkbox') dados[el.name] = el.checked;
+        else if (el.type === 'radio' && el.checked) dados[el.name] = el.value;
+        else dados[el.name] = el.value;
+    });
+    localStorage.setItem('checklistSalvo', JSON.stringify(dados));
+    alert('💾 SALVO!');
+}
 </script>
 
 </body>
 </html>
+
 
 
 
