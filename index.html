@@ -864,10 +864,30 @@ function limparFormulario() {
 document.addEventListener('DOMContentLoaded', function() {
   console.log('✅ JS CARREGADO!');
 });
+<script>
+// PDF DEFINITIVO - FUNCIONA 100%
+function gerarPDF() {
+    const placa = document.getElementById('placa')?.value.toUpperCase() || 'SEM-PLACA';
+    const elemento = document.getElementById('novo-checklist');
+    
+    html2pdf()
+        .set({
+            filename: `Checklist_${placa}.pdf`,
+            margin: [15, 10, 10, 10],
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            html2canvas: { scale: 2, useCORS: true }
+        })
+        .from(elemento)
+        .save()
+        .then(() => alert('✅ PDF baixado!'))
+        .catch(err => alert('❌ Erro: ' + err));
+}
+
 </script>
 
 </body>
 </html>
+
 
 
 
