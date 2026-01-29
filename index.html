@@ -464,10 +464,8 @@
 </div>
 
     </div>
-
 <!-- ======================================================
      CONTAINER OCULTO PARA GERAR PDF (ORDEM DE SERVIÇO)
-     (Não aparece na tela; usado apenas para o html2pdf)
 ====================================================== -->
 <div id="containerPDF" style="display:none; width:210mm; background:#fff;">
   <div style="padding:18px 18px 12px 18px; border-bottom:4px solid var(--color-primary); display:flex; gap:16px; align-items:flex-start;">
@@ -485,7 +483,7 @@
     </div>
     <div style="text-align:right; flex:0 0 auto;">
       <div style="display:inline-block; background:var(--color-primary); color:#fff; padding:10px 12px; border-radius:8px; font-weight:800; font-size:12px;">
-        OS Nº <span id="pdfOSNumero">0001</span>
+        OS Nº <span id="pdfOSNumero">--</span>
       </div>
       <div style="margin-top:6px; font-size:10px; color:#666; line-height:1.4;">
         <div>Data: <span id="pdfGeradoData">--/--/----</span></div>
@@ -530,45 +528,22 @@
 
   <div style="padding:14px 18px;">
     <div style="font-weight:800; font-size:11px; color:var(--color-primary); padding-bottom:8px; border-bottom:2px solid var(--color-primary);">ITENS (PEÇAS E SERVIÇOS)</div>
-
     <div style="margin-top:10px;">
       <div style="font-weight:800; font-size:11px; color:#333; margin-bottom:6px;">🔩 Peças</div>
       <table style="width:100%; border-collapse:collapse; font-size:11px;">
-        <thead>
-          <tr style="background:#f3f3f3;">
-            <th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th>
-            <th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th>
-          </tr>
-        </thead>
+        <thead><tr style="background:#f3f3f3;"><th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th><th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th></tr></thead>
         <tbody id="pdfPecasBody"></tbody>
-        <tfoot>
-          <tr>
-            <td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Peças:</td>
-            <td id="pdfTotalPecas" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:var(--color-primary);">R$ 0,00</td>
-          </tr>
-        </tfoot>
+        <tfoot><tr><td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Peças:</td><td id="pdfTotalPecas" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:var(--color-primary);">R$ 0,00</td></tr></tfoot>
       </table>
     </div>
-
     <div style="margin-top:14px;">
       <div style="font-weight:800; font-size:11px; color:#333; margin-bottom:6px;">🔧 Serviços</div>
       <table style="width:100%; border-collapse:collapse; font-size:11px;">
-        <thead>
-          <tr style="background:#f3f3f3;">
-            <th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th>
-            <th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th>
-          </tr>
-        </thead>
+        <thead><tr style="background:#f3f3f3;"><th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th><th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th></tr></thead>
         <tbody id="pdfServicosBody"></tbody>
-        <tfoot>
-          <tr>
-            <td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Serviços:</td>
-            <td id="pdfTotalServicos" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:#0056b3;">R$ 0,00</td>
-          </tr>
-        </tfoot>
+        <tfoot><tr><td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Serviços:</td><td id="pdfTotalServicos" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:#0056b3;">R$ 0,00</td></tr></tfoot>
       </table>
     </div>
-
     <div style="margin-top:14px; padding:12px; border-radius:10px; background:#efefef; text-align:right;">
       <div style="font-size:11px; color:#555; font-weight:800;">TOTAL GERAL (Peças + Serviços):</div>
       <div id="pdfTotalGeral" style="font-size:18px; font-weight:900; color:#27ae60; margin-top:4px;">R$ 0,00</div>
@@ -579,7 +554,6 @@
     <div style="border-top:2px solid #000; padding-top:6px; text-align:center; font-size:10px; color:#333;">Assinatura do Cliente</div>
     <div style="border-top:2px solid #000; padding-top:6px; text-align:center; font-size:10px; color:#333;">Responsável pela Inspeção</div>
   </div>
-
   <div style="padding:12px 18px 18px 18px; text-align:center; font-size:9px; color:#666; border-top:1px solid #eee;">
     Gerado em <span id="pdfGeradoDataHora">--/--/---- --:--</span>
   </div>
@@ -807,47 +781,41 @@ function salvarChecklist() {
             carregarHistorico();
         }
 
-        function obterProximaOS() {
-    const chave = 'OS_SEQ';
-    const atual = parseInt(localStorage.getItem(chave) || '0', 10);
-    const proximo = atual + 1;
-    localStorage.setItem(chave, String(proximo));
-    // exibe com 4 dígitos: 0001, 0002...
-    return String(proximo).padStart(4, '0');
+        
+function obterNumeroOS() {
+    // Retorna formato: PLACA-DDMMAA
+    const placa = (document.getElementById('placa')?.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const agora = new Date();
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = String(agora.getFullYear()).slice(-2); // Pega 26 de 2026
+
+    if (!placa) return `OS-${dia}${mes}${ano}`; // Fallback se não tiver placa
+
+    return `${placa}-${dia}${mes}${ano}`;
 }
 
 function montarTabelaPDF(tbodyId, pdfBodyId) {
     const tbody = document.getElementById(tbodyId);
     const pdfBody = document.getElementById(pdfBodyId);
     pdfBody.innerHTML = '';
-
     let total = 0;
     if (tbody) {
-        const linhas = Array.from(tbody.querySelectorAll('tr'));
-        linhas.forEach(tr => {
+        Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
             const tds = tr.querySelectorAll('td');
             if (tds.length < 2) return;
             const desc = (tds[0].textContent || '').trim();
-            const valorTxt = (tds[1].textContent || '').replace('R$', '').trim();
-            const valorNum = parseFloat(valorTxt.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
-
+            const valorNum = parseFloat((tds[1].textContent || '').replace('R$', '').replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
             if (!desc) return;
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td style="border:1px solid #ddd; padding:7px;">${desc}</td>
-                <td style="border:1px solid #ddd; padding:7px; text-align:right;">R$ ${valorNum.toFixed(2)}</td>
-            `;
+            row.innerHTML = `<td style="border:1px solid #ddd; padding:7px;">${desc}</td><td style="border:1px solid #ddd; padding:7px; text-align:right;">R$ ${valorNum.toFixed(2)}</td>`;
             pdfBody.appendChild(row);
             total += valorNum;
         });
     }
-
     if (!pdfBody.children.length) {
-        const row = document.createElement('tr');
-        row.innerHTML = '<td colspan="2" style="border:1px solid #ddd; padding:10px; text-align:center; color:#999;">Nenhum item</td>';
-        pdfBody.appendChild(row);
+        pdfBody.innerHTML = '<tr><td colspan="2" style="border:1px solid #ddd; padding:10px; text-align:center; color:#999;">Nenhum item</td></tr>';
     }
-
     return total;
 }
 
@@ -859,15 +827,12 @@ function gerarPDF() {
         return;
     }
 
-    // OS sequencial
-    const os = obterProximaOS();
+    const os = obterNumeroOS(); // PLACA-DDMMAA
 
-    // Data/hora
     const agora = new Date();
     const data = agora.toLocaleDateString('pt-BR');
     const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-    // Oficina (config.js)
     const cfg = window.OFICINA_CONFIG || {};
     document.getElementById('pdfLogo').src = cfg.logo || 'logo.jpg';
     document.getElementById('pdfOficinaNome').textContent = (cfg.nome || 'OFICINA').toUpperCase();
@@ -876,73 +841,53 @@ function gerarPDF() {
     document.getElementById('pdfOficinaEndereco').textContent = cfg.endereco || 'ENDEREÇO DA OFICINA';
     document.getElementById('pdfOficinaCNPJ').textContent = cfg.cnpj ? `CNPJ: ${cfg.cnpj}` : 'CNPJ: --';
 
-    // Topo
     document.getElementById('pdfOSNumero').textContent = os;
     document.getElementById('pdfGeradoData').textContent = data;
     document.getElementById('pdfGeradoHora').textContent = hora;
     document.getElementById('pdfGeradoDataHora').textContent = `${data} ${hora}`;
 
-    // Cliente
     document.getElementById('pdfClienteNome').textContent = cliente.toUpperCase();
     document.getElementById('pdfClienteDoc').textContent = (document.getElementById('cpf_cnpj')?.value || '-');
     document.getElementById('pdfClienteTel').textContent = (document.getElementById('celular_cliente')?.value || '-');
     document.getElementById('pdfClienteEndereco').textContent = (document.getElementById('endereco_cliente')?.value || '-');
 
-    // Veículo
     document.getElementById('pdfVeiculoPlaca').textContent = placa.toUpperCase();
     document.getElementById('pdfVeiculoModelo').textContent = (document.getElementById('modelo')?.value || '-');
     document.getElementById('pdfVeiculoChassi').textContent = (document.getElementById('chassi')?.value || '-');
     document.getElementById('pdfVeiculoKM').textContent = (document.getElementById('km_entrada')?.value || '-');
-    const dataEnt = (document.getElementById('data')?.value || '-');
-    const horaEnt = (document.getElementById('hora')?.value || '-');
-    document.getElementById('pdfVeiculoEntrada').textContent = `${dataEnt} ${horaEnt}`;
+    document.getElementById('pdfVeiculoEntrada').textContent = (document.getElementById('data')?.value || '-') + ' ' + (document.getElementById('hora')?.value || '-');
     const combSel = document.getElementById('combustivel');
-    const combTxt = combSel && combSel.selectedOptions?.[0] ? combSel.selectedOptions[0].textContent : (combSel?.value || '-');
-    document.getElementById('pdfVeiculoCombustivel').textContent = (combTxt || '-');
+    document.getElementById('pdfVeiculoCombustivel').textContent = combSel && combSel.selectedOptions?.[0] ? combSel.selectedOptions[0].textContent : (combSel?.value || '-');
 
-    // Serviços solicitados
     document.getElementById('pdfServicos').textContent = (document.getElementById('servicos')?.value || '-');
 
-    // Inspeção (equipamentos + caracteristicas)
     const grid = document.getElementById('pdfInspecaoGrid');
     grid.innerHTML = '';
-    const lista = [
-        ...document.querySelectorAll('input[type="checkbox"][name="equipamentos"]'),
-        ...document.querySelectorAll('input[type="checkbox"][name="caracteristicas"]')
-    ];
-
-    lista.forEach(cb => {
-        const label = document.querySelector(`label[for="${cb.id}"]`)?.textContent?.trim() || cb.value || cb.id;
+    [...document.querySelectorAll('input[name="equipamentos"]'), ...document.querySelectorAll('input[name="caracteristicas"]')].forEach(cb => {
+        const label = document.querySelector(`label[for="${cb.id}"]`)?.textContent?.trim() || cb.value;
         const ok = !!cb.checked;
-        const bg = ok ? '#27ae60' : '#e74c3c';
-        const ic = ok ? '✅' : '❌';
         const el = document.createElement('div');
-        el.style.cssText = `background:${bg}; color:#fff; padding:9px 8px; border-radius:8px; font-size:10px; font-weight:800; text-align:center;`;
-        el.textContent = `${ic} ${label}`;
+        el.style.cssText = `background:${ok ? '#27ae60' : '#e74c3c'}; color:#fff; padding:9px 8px; border-radius:8px; font-size:10px; font-weight:800; text-align:center;`;
+        el.textContent = `${ok ? '✅' : '❌'} ${label}`;
         grid.appendChild(el);
     });
 
-    // Tabelas (usa o que já existe na aba orçamento)
     const totalPecas = montarTabelaPDF('tabelaPecas', 'pdfPecasBody');
     const totalServicos = montarTabelaPDF('tabelaServicos', 'pdfServicosBody');
-
     document.getElementById('pdfTotalPecas').textContent = `R$ ${totalPecas.toFixed(2)}`;
     document.getElementById('pdfTotalServicos').textContent = `R$ ${totalServicos.toFixed(2)}`;
-    const totalGeral = totalPecas + totalServicos;
-    document.getElementById('pdfTotalGeral').textContent = `R$ ${totalGeral.toFixed(2)}`;
+    document.getElementById('pdfTotalGeral').textContent = `R$ ${(totalPecas + totalServicos).toFixed(2)}`;
 
-    // Gerar PDF
-    const el = document.getElementById('containerPDF');
     const opt = {
         margin: [4, 4, 4, 4],
-        filename: `OS-${os}-${placa.toUpperCase()}.pdf`,
+        filename: `Checklist-${os}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
-    html2pdf().set(opt).from(el).save();
+    html2pdf().set(opt).from(document.getElementById('containerPDF')).save();
 }
 
 
