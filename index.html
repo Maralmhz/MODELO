@@ -576,7 +576,12 @@ function salvarChecklist() {
 
         if (!el.name && !el.id) return;
 
-        const chave = el.name || el.id;
+        let chave = el.name || el.id;
+
+        // NORMALIZAÇÃO NA RAIZ - SEMPRE SALVA COMO 'nomecliente'
+        if (chave === 'nomecliente') {
+            chave = 'nomecliente'; // Garante o nome correto
+        }
 
         if (el.type === 'checkbox') {
             dados[chave] = el.checked;
@@ -586,6 +591,7 @@ function salvarChecklist() {
             dados[chave] = el.value;
         }
     });
+
 
     // peças adicionadas dinamicamente
     dados.pecas = [];
@@ -696,57 +702,55 @@ function salvarChecklist() {
             });
         }
 
-               function carregarChecklist(id) {
-            const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-            const item = checklists.find(c => c.id === id);
+ function carregarChecklist(id) {
+    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+    const item = checklists.find(c => c.id === id);
 
-            if (item) {
-                switchTab('novo-checklist');
+    if (!item) return;
 
-                // 1) Preenche genericamente o que bater por name
-                for (const key in item) {
-                    const el = document.getElementsByName(key)[0];
-                    if (el && el.type !== 'checkbox' && el.type !== 'file' && el.type !== 'radio') {
-                        el.value = item[key];
-                    }
-                }
+    switchTab('novo-checklist');
 
-                // 2) Ajustes específicos para campos antigos
-                if (item.nome_cliente) {
-                    const campoNome = document.getElementById('nomecliente');
-                    if (campoNome) campoNome.value = item.nome_cliente;
-                }
+    // Garante que temos sempre "nomecliente" dentro do objeto
+    if (item.nome_cliente && !item.nomecliente) {
+        item.nomecliente = item.nome_cliente;
+    }
 
-                if (item.cpf_cnpj) {
-                    const campoCpf = document.getElementById('cpfcnpj');
-                    if (campoCpf) campoCpf.value = item.cpf_cnpj;
-                }
+    // Preenche campos principais pelo ID
+    if (document.getElementById('nomecliente')) {
+        document.getElementById('nomecliente').value = item.nomecliente || '';
+    }
+    if (document.getElementById('cpfcnpj')) {
+        document.getElementById('cpfcnpj').value = item.cpf_cnpj || item.cpfcnpj || '';
+    }
+    if (document.getElementById('celularcliente')) {
+        document.getElementById('celularcliente').value = item.telefone || item.contato || item.celularcliente || '';
+    }
+    if (document.getElementById('placa')) {
+        document.getElementById('placa').value = item.placa || '';
+    }
+    if (document.getElementById('modelo')) {
+        document.getElementById('modelo').value = item.modelo || '';
+    }
 
-                if (item.telefone || item.contato) {
-                    const campoTel = document.getElementById('celularcliente');
-                    if (campoTel) campoTel.value = item.telefone || item.contato;
-                }
-
-                // Placa / modelo garantidos
-                if (item.placa && document.getElementById('placa')) {
-                    document.getElementById('placa').value = item.placa;
-                }
-                if (item.modelo && document.getElementById('modelo')) {
-                    document.getElementById('modelo').value = item.modelo;
-                }
-
-                // 3) Checkboxes
-                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-
-                if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
-                if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
-                if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
-                if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
-
-                // 4) Atualiza o resumo visual (que alimenta a aba Resumo)
-                setTimeout(atualizarResumoVeiculo, 100);
-            }
+    // Preenche o resto de forma genérica
+    for (const key in item) {
+        const el = document.getElementsByName(key)[0];
+        if (el && el.type !== 'checkbox' && el.type !== 'file' && el.type !== 'radio') {
+            el.value = item[key];
         }
+    }
+
+    // Checkboxes
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
+    if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
+    if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
+    if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
+
+    atualizarResumoVeiculo();
+}
+
 
 
 
@@ -1519,6 +1523,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
