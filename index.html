@@ -1500,40 +1500,28 @@ function imprimirResumo() {
 }
 
 function gerarPDFResumo() {
-    const elemento = document.getElementById('resumoContainer'); // APENAS o papel!
+    const elemento = document.getElementById('resumoContainer');
     
-    // Esconde tudo menos o papel
+    // Esconde botões
     document.querySelectorAll('button, .tabs, .header-badge, .action-buttons').forEach(el => {
         el.style.display = 'none';
     });
-    
+
     const opt = {
-        margin: [10, 15, 10, 15],
-        filename: 'OS-' + document.getElementById('placa')?.value + '.pdf',
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true,
-            width: elemento.scrollWidth,
-            height: elemento.scrollHeight
-        },
+        margin: [5, 5, 5, 5],
+        filename: 'OS-' + (document.getElementById('placa')?.value || 'SEMPLACA') + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(elemento).save().then(() => {
-        // Restaura tudo
-        document.querySelectorAll('button, .tabs, .header-badge, .action-buttons').forEach(el => {
-            el.style.display = '';
-        });
-    }).catch(err => {
-        console.error('Erro PDF:', err);
-        alert('Erro ao gerar PDF. Tente imprimir.');
-        // Restaura
         document.querySelectorAll('button, .tabs, .header-badge, .action-buttons').forEach(el => {
             el.style.display = '';
         });
     });
 }
+
 
     </script>
 <button id="btnSalvarChecklist" onclick="salvarChecklist()">
@@ -1544,6 +1532,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
