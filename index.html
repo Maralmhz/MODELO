@@ -696,44 +696,58 @@ function salvarChecklist() {
             });
         }
 
-       function carregarChecklist(id) {
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    const item = checklists.find(c => c.id === id);
+               function carregarChecklist(id) {
+            const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+            const item = checklists.find(c => c.id === id);
 
-    if (item) {
-        switchTab('novo-checklist');
+            if (item) {
+                switchTab('novo-checklist');
 
-        // 1. Tenta preencher tudo de forma genérica (para campos novos)
-        for (const key in item) {
-            const el = document.getElementsByName(key)[0];
-            if (el && el.type !== 'checkbox' && el.type !== 'file' && el.type !== 'radio') {
-                el.value = item[key];
+                // 1) Preenche genericamente o que bater por name
+                for (const key in item) {
+                    const el = document.getElementsByName(key)[0];
+                    if (el && el.type !== 'checkbox' && el.type !== 'file' && el.type !== 'radio') {
+                        el.value = item[key];
+                    }
+                }
+
+                // 2) Ajustes específicos para campos antigos
+                if (item.nome_cliente) {
+                    const campoNome = document.getElementById('nomecliente');
+                    if (campoNome) campoNome.value = item.nome_cliente;
+                }
+
+                if (item.cpf_cnpj) {
+                    const campoCpf = document.getElementById('cpfcnpj');
+                    if (campoCpf) campoCpf.value = item.cpf_cnpj;
+                }
+
+                if (item.telefone || item.contato) {
+                    const campoTel = document.getElementById('celularcliente');
+                    if (campoTel) campoTel.value = item.telefone || item.contato;
+                }
+
+                // Placa / modelo garantidos
+                if (item.placa && document.getElementById('placa')) {
+                    document.getElementById('placa').value = item.placa;
+                }
+                if (item.modelo && document.getElementById('modelo')) {
+                    document.getElementById('modelo').value = item.modelo;
+                }
+
+                // 3) Checkboxes
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+                if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
+                if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
+                if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
+                if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
+
+                // 4) Atualiza o resumo visual (que alimenta a aba Resumo)
+                setTimeout(atualizarResumoVeiculo, 100);
             }
         }
 
-        // 2. FORÇA BRUTA: Preenche manualmente os campos antigos que estão falhando
-        // Se existir 'nome_cliente' no banco, joga no campo 'nomecliente'
-        if (item.nome_cliente) document.getElementById('nomecliente').value = item.nome_cliente;
-        if (item.cpf_cnpj)     document.getElementById('cpfcnpj').value = item.cpf_cnpj;
-        if (item.telefone)     document.getElementById('celularcliente').value = item.telefone;
-        if (item.contato)      document.getElementById('celularcliente').value = item.contato;
-        
-        // Garante que placa e modelo também venham (caso tenham nomes diferentes)
-        if (item.placa)  document.getElementById('placa').value = item.placa;
-        if (item.modelo) document.getElementById('modelo').value = item.modelo;
-
-        // 3. Limpa e marca os checkboxes
-        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-
-        if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
-        if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
-        if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
-        if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
-
-        // 4. Atualiza o resumo visual imediatamente
-        setTimeout(atualizarResumoVeiculo, 100);
-    }
-}
 
 
         function marcarCheckbox(name, value) {
@@ -1505,6 +1519,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
