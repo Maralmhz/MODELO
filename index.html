@@ -7,8 +7,8 @@
     <meta name="description" content="Checklist de Oficina - App Offline com PDF">
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="logo.png">
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.jpg">
+    <link rel="icon" type="image/png" href="logo.jpg">
    <title id="titulo-pagina">Checklist de Entrada – Oficina</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -16,7 +16,7 @@
     <div class="container">
        <div class="header">
     <div class="logo-container">
-        <img id="logo-oficina" src="logo.png" alt="Logo da Oficina">
+        <img id="logo-oficina" src="logo.jpg" alt="Logo da Oficina">
     </div>
     <div class="header-content">
         <!-- ✅ NEUTRO - PREENCHER NO CONFIG.JS -->
@@ -464,6 +464,101 @@
 </div>
 
     </div>
+<!-- ======================================================
+     CONTAINER OCULTO PARA GERAR PDF (ORDEM DE SERVIÇO)
+====================================================== -->
+<div id="containerPDF" style="display:none; width:210mm; background:#fff;">
+  <div style="padding:18px 18px 12px 18px; border-bottom:4px solid var(--color-primary); display:flex; gap:16px; align-items:flex-start;">
+    <div style="width:90px; flex:0 0 90px;">
+      <img id="pdfLogo" src="logo.jpg" alt="Logo" style="width:100%; height:auto; object-fit:contain;">
+    </div>
+    <div style="flex:1;">
+      <div id="pdfOficinaNome" style="font-size:20px; font-weight:800; color:var(--color-primary); line-height:1.1;">OFICINA</div>
+      <div id="pdfOficinaSubtitulo" style="margin-top:4px; font-size:11px; color:#666;">Checklist de entrada e inspeção veicular</div>
+      <div style="margin-top:8px; font-size:11px; color:#444; line-height:1.5;">
+        <div>📱 <span id="pdfOficinaTelefone">(00) 00000-0000</span></div>
+        <div><span id="pdfOficinaEndereco">ENDEREÇO DA OFICINA</span></div>
+        <div><span id="pdfOficinaCNPJ">CNPJ: --</span></div>
+      </div>
+    </div>
+    <div style="text-align:right; flex:0 0 auto;">
+      <div style="display:inline-block; background:var(--color-primary); color:#fff; padding:10px 12px; border-radius:8px; font-weight:800; font-size:12px;">
+        OS Nº <span id="pdfOSNumero">--</span>
+      </div>
+      <div style="margin-top:6px; font-size:10px; color:#666; line-height:1.4;">
+        <div>Data: <span id="pdfGeradoData">--/--/----</span></div>
+        <div>Hora: <span id="pdfGeradoHora">--:--</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:14px 18px; background:#fafafa; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div style="background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px;">
+      <div style="font-weight:800; font-size:11px; color:var(--color-primary); padding-bottom:8px; border-bottom:2px solid var(--color-primary);">CLIENTE</div>
+      <div style="margin-top:8px; font-size:11px; color:#333; line-height:1.6;">
+        <div><b>Nome:</b> <span id="pdfClienteNome">-</span></div>
+        <div><b>CPF/CNPJ:</b> <span id="pdfClienteDoc">-</span></div>
+        <div><b>Tel:</b> <span id="pdfClienteTel">-</span></div>
+        <div><b>Endereço:</b> <span id="pdfClienteEndereco">-</span></div>
+      </div>
+    </div>
+
+    <div style="background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px;">
+      <div style="font-weight:800; font-size:11px; color:var(--color-primary); padding-bottom:8px; border-bottom:2px solid var(--color-primary);">VEÍCULO</div>
+      <div style="margin-top:8px; font-size:11px; color:#333; line-height:1.6;">
+        <div><b>Placa:</b> <span id="pdfVeiculoPlaca">-</span></div>
+        <div><b>Modelo:</b> <span id="pdfVeiculoModelo">-</span></div>
+        <div><b>Chassi:</b> <span id="pdfVeiculoChassi">-</span></div>
+        <div><b>KM Entrada:</b> <span id="pdfVeiculoKM">-</span></div>
+        <div><b>Entrada:</b> <span id="pdfVeiculoEntrada">-</span></div>
+        <div><b>Combustível:</b> <span id="pdfVeiculoCombustivel">-</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:14px 18px;">
+    <div style="background:var(--color-primary); color:#fff; padding:10px 12px; border-radius:8px; font-size:12px; font-weight:800;">SERVIÇOS SOLICITADOS</div>
+    <div id="pdfServicos" style="margin-top:10px; background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; font-size:11px; color:#333; min-height:52px; white-space:pre-wrap; line-height:1.5;">-</div>
+  </div>
+
+  <div style="padding:14px 18px;">
+    <div style="background:var(--color-primary); color:#fff; padding:10px 12px; border-radius:8px; font-size:12px; font-weight:800;">INSPEÇÃO DE ENTRADA</div>
+    <div id="pdfInspecaoGrid" style="margin-top:10px; display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;"></div>
+  </div>
+
+  <div style="padding:14px 18px;">
+    <div style="font-weight:800; font-size:11px; color:var(--color-primary); padding-bottom:8px; border-bottom:2px solid var(--color-primary);">ITENS (PEÇAS E SERVIÇOS)</div>
+    <div style="margin-top:10px;">
+      <div style="font-weight:800; font-size:11px; color:#333; margin-bottom:6px;">🔩 Peças</div>
+      <table style="width:100%; border-collapse:collapse; font-size:11px;">
+        <thead><tr style="background:#f3f3f3;"><th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th><th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th></tr></thead>
+        <tbody id="pdfPecasBody"></tbody>
+        <tfoot><tr><td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Peças:</td><td id="pdfTotalPecas" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:var(--color-primary);">R$ 0,00</td></tr></tfoot>
+      </table>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-weight:800; font-size:11px; color:#333; margin-bottom:6px;">🔧 Serviços</div>
+      <table style="width:100%; border-collapse:collapse; font-size:11px;">
+        <thead><tr style="background:#f3f3f3;"><th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th><th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th></tr></thead>
+        <tbody id="pdfServicosBody"></tbody>
+        <tfoot><tr><td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Serviços:</td><td id="pdfTotalServicos" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:#0056b3;">R$ 0,00</td></tr></tfoot>
+      </table>
+    </div>
+    <div style="margin-top:14px; padding:12px; border-radius:10px; background:#efefef; text-align:right;">
+      <div style="font-size:11px; color:#555; font-weight:800;">TOTAL GERAL (Peças + Serviços):</div>
+      <div id="pdfTotalGeral" style="font-size:18px; font-weight:900; color:#27ae60; margin-top:4px;">R$ 0,00</div>
+    </div>
+  </div>
+
+  <div style="padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+    <div style="border-top:2px solid #000; padding-top:6px; text-align:center; font-size:10px; color:#333;">Assinatura do Cliente</div>
+    <div style="border-top:2px solid #000; padding-top:6px; text-align:center; font-size:10px; color:#333;">Responsável pela Inspeção</div>
+  </div>
+  <div style="padding:12px 18px 18px 18px; text-align:center; font-size:9px; color:#666; border-top:1px solid #eee;">
+    Gerado em <span id="pdfGeradoDataHora">--/--/---- --:--</span>
+  </div>
+</div>
+
 
     <script>
 function salvarChecklist() {
@@ -686,57 +781,130 @@ function salvarChecklist() {
             carregarHistorico();
         }
 
-        function gerarPDF() {
-            const elemento = document.querySelector('.container');
+        
+function obterNumeroOS() {
+    const placa = (document.getElementById('placa')?.value || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const agora = new Date();
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = String(agora.getFullYear()).slice(-2);
+    if (!placa) return `OS-${dia}${mes}${ano}`;
+    return `${placa}-${dia}${mes}${ano}`;
+}
 
-            const originalBodyOverflow = document.body.style.overflow;
-            const originalBodyPadding = document.body.style.padding;
-            const originalContainerMargin = elemento.style.margin;
-            const originalContainerBoxShadow = elemento.style.boxShadow;
+function montarTabelaPDF(tbodyId, pdfBodyId) {
+    const tbody = document.getElementById(tbodyId);
+    const pdfBody = document.getElementById(pdfBodyId);
+    pdfBody.innerHTML = '';
+    let total = 0;
+    if (tbody) {
+        Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+            const tds = tr.querySelectorAll('td');
+            if (tds.length < 2) return;
+            const desc = (tds[0].textContent || '').trim();
+            const valorNum = parseFloat((tds[1].textContent || '').replace('R$', '').replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+            if (!desc) return;
+            const row = document.createElement('tr');
+            row.innerHTML = `<td style="border:1px solid #ddd; padding:7px;">${desc}</td><td style="border:1px solid #ddd; padding:7px; text-align:right;">R$ ${valorNum.toFixed(2)}</td>`;
+            pdfBody.appendChild(row);
+            total += valorNum;
+        });
+    }
+    if (!pdfBody.children.length) {
+        pdfBody.innerHTML = '<tr><td colspan="2" style="border:1px solid #ddd; padding:10px; text-align:center; color:#999;">Nenhum item</td></tr>';
+    }
+    return total;
+}
 
-            window.scrollTo(0, 0);
-            document.body.style.overflow = 'visible';
-            document.body.style.padding = '0';
-            elemento.style.margin = '0 auto';
-            elemento.style.boxShadow = 'none';
+function gerarPDF() {
+    const placa = (document.getElementById('placa')?.value || '').trim();
+    const cliente = (document.getElementById('nome_cliente')?.value || '').trim();
+    if (!placa || !cliente) {
+        alert('⚠️ Preencha PLACA e NOME do cliente antes de gerar o PDF.');
+        return;
+    }
 
-            const botoes = document.querySelectorAll('button, .tabs, .header-badge, .action-buttons');
-            botoes.forEach(btn => btn.style.display = 'none');
+    const os = obterNumeroOS();
 
-            const opt = {
-                margin:       [0, 0, 0, 0],
-                filename:     'Checklist-' + document.getElementById('placa').value + '.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  {
-                    scale: 2,
-                    useCORS: true,
-                    scrollY: 0,
-windowWidth: document.documentElement.offsetWidth
-},
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+    const agora = new Date();
+    const data = agora.toLocaleDateString('pt-BR');
+    const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-            html2pdf().set(opt).from(elemento).save().then(() => {
-                botoes.forEach(btn => btn.style.display = '');
-                document.querySelector('.tabs').style.display = 'flex';
-                document.querySelector('.header-badge').style.display = 'block';
-                document.querySelectorAll('.action-buttons').forEach(ab => ab.style.display = 'flex');
+    const cfg = window.OFICINA_CONFIG || {};
+    const logoEl = document.getElementById('pdfLogo');
+    if(logoEl) logoEl.src = cfg.logo || 'logo.jpg';
 
-                document.body.style.overflow = originalBodyOverflow;
-                document.body.style.padding = originalBodyPadding;
-                elemento.style.margin = originalContainerMargin;
-                elemento.style.boxShadow = originalContainerBoxShadow;
-            }).catch(err => {
-                console.error(err);
-                alert("Erro ao gerar PDF.");
-                botoes.forEach(btn => btn.style.display = '');
-                document.querySelector('.tabs').style.display = 'flex';
-                document.querySelector('.header-badge').style.display = 'block';
-                document.querySelectorAll('.action-buttons').forEach(ab => ab.style.display = 'flex');
-                document.body.style.overflow = originalBodyOverflow;
-                document.body.style.padding = originalBodyPadding;
-            });
-        }
+    document.getElementById('pdfOficinaNome').textContent = (cfg.nome || 'OFICINA').toUpperCase();
+    document.getElementById('pdfOficinaSubtitulo').textContent = cfg.subtitulo || 'Checklist de entrada e inspeção veicular';
+    document.getElementById('pdfOficinaTelefone').textContent = cfg.telefone || '(00) 00000-0000';
+    document.getElementById('pdfOficinaEndereco').textContent = cfg.endereco || 'ENDEREÇO DA OFICINA';
+    document.getElementById('pdfOficinaCNPJ').textContent = cfg.cnpj ? `CNPJ: ${cfg.cnpj}` : 'CNPJ: --';
+
+    document.getElementById('pdfOSNumero').textContent = os;
+    document.getElementById('pdfGeradoData').textContent = data;
+    document.getElementById('pdfGeradoHora').textContent = hora;
+    document.getElementById('pdfGeradoDataHora').textContent = `${data} ${hora}`;
+
+    document.getElementById('pdfClienteNome').textContent = cliente.toUpperCase();
+    document.getElementById('pdfClienteDoc').textContent = (document.getElementById('cpf_cnpj')?.value || '-');
+    document.getElementById('pdfClienteTel').textContent = (document.getElementById('celular_cliente')?.value || '-');
+    document.getElementById('pdfClienteEndereco').textContent = (document.getElementById('endereco_cliente')?.value || '-');
+
+    document.getElementById('pdfVeiculoPlaca').textContent = placa.toUpperCase();
+    document.getElementById('pdfVeiculoModelo').textContent = (document.getElementById('modelo')?.value || '-');
+    document.getElementById('pdfVeiculoChassi').textContent = (document.getElementById('chassi')?.value || '-');
+    document.getElementById('pdfVeiculoKM').textContent = (document.getElementById('km_entrada')?.value || '-');
+    document.getElementById('pdfVeiculoEntrada').textContent = (document.getElementById('data')?.value || '-') + ' ' + (document.getElementById('hora')?.value || '-');
+
+    const combSel = document.getElementById('combustivel');
+    document.getElementById('pdfVeiculoCombustivel').textContent = combSel && combSel.selectedOptions?.[0] ? combSel.selectedOptions[0].textContent : (combSel?.value || '-');
+
+    document.getElementById('pdfServicos').textContent = (document.getElementById('servicos')?.value || '-');
+
+    const grid = document.getElementById('pdfInspecaoGrid');
+    grid.innerHTML = '';
+    [...document.querySelectorAll('input[name="equipamentos"]'), ...document.querySelectorAll('input[name="caracteristicas"]')].forEach(cb => {
+        const label = document.querySelector(`label[for="${cb.id}"]`)?.textContent?.trim() || cb.value;
+        const ok = !!cb.checked;
+        const el = document.createElement('div');
+        el.style.cssText = `background:${ok ? '#27ae60' : '#e74c3c'}; color:#fff; padding:9px 8px; border-radius:8px; font-size:10px; font-weight:800; text-align:center;`;
+        el.textContent = `${ok ? '✅' : '❌'} ${label}`;
+        grid.appendChild(el);
+    });
+
+    const totalPecas = montarTabelaPDF('tabelaPecas', 'pdfPecasBody');
+    const totalServicos = montarTabelaPDF('tabelaServicos', 'pdfServicosBody');
+    document.getElementById('pdfTotalPecas').textContent = `R$ ${totalPecas.toFixed(2)}`;
+    document.getElementById('pdfTotalServicos').textContent = `R$ ${totalServicos.toFixed(2)}`;
+    document.getElementById('pdfTotalGeral').textContent = `R$ ${(totalPecas + totalServicos).toFixed(2)}`;
+
+    // TRUQUE PARA EVITAR PDF EM BRANCO:
+    // Exibimos o container como um overlay absoluto na tela antes de gerar
+    const el = document.getElementById('containerPDF');
+    el.style.display = 'block';
+    el.style.position = 'absolute';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.style.zIndex = '9999';
+
+    const opt = {
+        margin: [4, 4, 4, 4],
+        filename: `Checklist-${os}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(el).save().then(() => {
+        el.style.display = 'none'; // Esconde de novo
+    }).catch(err => {
+        console.error(err);
+        el.style.display = 'none';
+        alert('Erro ao gerar PDF');
+    });
+}
+
 
         function limparFormulario() {
             if (confirm("Limpar todos os campos do formulário?")) {
@@ -1226,13 +1394,3 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="app.js"></script>
 </body>
 </html>
-
-</body>
-</html>
-
-
-
-
-
-
-
