@@ -45,6 +45,7 @@
     <button class="tab-button active" onclick="switchTab('novo-checklist')">➕ Novo Checklist</button>
     <button class="tab-button" onclick="switchTab('orcamento')">💰 Peças & Serviços</button>
     <button class="tab-button" onclick="switchTab('fotos')">📸 Fotos</button>
+    <button class="tab-button" onclick="switchTab('resumo'); atualizarResumoOS()">📄 Resumo</button>
     <button class="tab-button" onclick="switchTab('historico')">📋 Histórico</button>
     <button class="tab-button" onclick="switchTab('relatorios')">📊 Relatórios</button>
 </div>
@@ -464,6 +465,107 @@
 </div>
 
     </div>
+<!-- ========================================== -->
+<!-- NOVA ABA: RESUMO (DOCUMENTO DE IMPRESSÃO) -->
+<!-- ========================================== -->
+<div id="resumo" class="tab-content">
+  <div class="content">
+    
+    <!-- ÁREA QUE SERÁ IMPRESSA (A FOLHA) -->
+    <div id="resumoContainer" class="os-paper">
+      
+      <!-- CABEÇALHO -->
+      <div class="os-header">
+        <div class="os-header-left">
+          <img id="logoResumo" src="" alt="Logo" class="os-logo">
+          <div class="os-empresa-dados">
+            <div id="nomeOficinaResumo" class="os-oficina-nome">NOME DA OFICINA</div>
+            <div id="enderecoOficinaResumo" class="os-oficina-sub">Endereço da oficina</div>
+            <div id="telefoneOficinaResumo" class="os-oficina-sub">Telefone</div>
+          </div>
+        </div>
+        <div class="os-header-right">
+          <div class="os-label-os">ORDEM DE SERVIÇO</div>
+          <div id="osNumero" class="os-numero-os">00000000</div>
+        </div>
+      </div>
+
+      <!-- DADOS CLIENTE E VEÍCULO (LADO A LADO) -->
+      <div class="os-grid-2">
+        <div class="os-box">
+          <div class="os-box-title">CLIENTE</div>
+          <div class="os-line"><strong>Nome:</strong> <span id="rNomeCliente"></span></div>
+          <div class="os-line"><strong>CPF/CNPJ:</strong> <span id="rCpfCnpj"></span></div>
+          <div class="os-line"><strong>Tel:</strong> <span id="rCelular"></span></div>
+        </div>
+        <div class="os-box">
+          <div class="os-box-title">VEÍCULO</div>
+          <div class="os-line"><strong>Veículo:</strong> <span id="rModelo"></span> <span id="rPlaca" style="background:#eee; padding:0 4px; border-radius:3px; font-weight:bold;"></span></div>
+          <div class="os-line"><strong>Chassi:</strong> <span id="rChassi"></span></div>
+          <div class="os-line"><strong>KM:</strong> <span id="rKmEntrada"></span> | <strong>Comb:</strong> <span id="rCombustivel"></span></div>
+          <div class="os-line"><strong>Data:</strong> <span id="rEntradaDataHora"></span></div>
+        </div>
+      </div>
+
+      <!-- SERVIÇOS SOLICITADOS -->
+      <div class="os-box mt-10">
+        <div class="os-box-title">SERVIÇOS SOLICITADOS</div>
+        <div id="rServicos" class="os-text-area"></div>
+      </div>
+
+      <!-- INSPEÇÃO (CHECKLIST) - SÓ O QUE MARCOU -->
+      <div class="os-box mt-10">
+        <div class="os-box-title">INSPEÇÃO DE ENTRADA</div>
+        <div id="rChecklistBadges" class="os-badges-area">
+          <!-- O Javascript vai preencher aqui -->
+        </div>
+      </div>
+
+      <!-- TABELAS DE ORÇAMENTO -->
+      <div class="os-grid-2 mt-10">
+        <!-- PEÇAS -->
+        <div>
+           <div class="os-table-header" style="border-bottom: 2px solid #e41616;">PEÇAS</div>
+           <table class="os-table" id="rTabelaPecas">
+             <!-- O Javascript vai preencher aqui -->
+           </table>
+        </div>
+        <!-- SERVIÇOS -->
+        <div>
+           <div class="os-table-header" style="border-bottom: 2px solid #0056b3;">SERVIÇOS</div>
+           <table class="os-table" id="rTabelaServicos">
+             <!-- O Javascript vai preencher aqui -->
+           </table>
+        </div>
+      </div>
+
+      <!-- TOTAL GERAL -->
+      <div class="os-total-row">
+        <span>TOTAL GERAL:</span>
+        <span id="rTotalGeral" class="os-total-value">R$ 0,00</span>
+      </div>
+
+      <!-- ASSINATURAS -->
+      <div class="os-assinaturas">
+        <div class="os-assina-box">Assinatura do Cliente</div>
+        <div class="os-assina-box">Assinatura do Técnico</div>
+      </div>
+
+      <!-- RODAPÉ -->
+      <div class="os-footer" id="rRodape">
+        Gerado via App Checklist Oficina v3.0
+      </div>
+
+    </div> <!-- FIM DA FOLHA -->
+
+    <!-- BOTÕES DE AÇÃO DA ABA RESUMO -->
+    <div class="action-buttons">
+      <button type="button" class="btn-secondary" onclick="imprimirResumo()">🖨️ Imprimir</button>
+      <button type="button" class="btn-success" onclick="gerarPDFResumo()">📥 Baixar PDF</button>
+    </div>
+
+  </div>
+</div>
 
     <script>
 function salvarChecklist() {
@@ -601,8 +703,19 @@ function salvarChecklist() {
             if (item) {
                 switchTab('novo-checklist');
 
+                // Mapeamento de nomes antigos -> novos para corrigir o bug
+                const mapa = {
+                    'nome_cliente': 'nomecliente',
+                    'cpf_cnpj': 'cpfcnpj',
+                    'telefone': 'celularcliente',
+                    'contato': 'celularcliente'
+                };
+
                 for (const key in item) {
-                    const el = document.getElementsByName(key)[0];
+                    // Usa o nome mapeado ou o original
+                    let nomeCampo = mapa[key] || key;
+                    
+                    const el = document.getElementsByName(nomeCampo)[0];
                     if (el && el.type !== 'checkbox' && el.type !== 'file') {
                         el.value = item[key];
                     }
@@ -618,6 +731,7 @@ function salvarChecklist() {
                 atualizarResumoVeiculo();
             }
         }
+
 
         function marcarCheckbox(name, value) {
             const els = document.getElementsByName(name);
@@ -686,7 +800,27 @@ function salvarChecklist() {
             carregarHistorico();
         }
 
-        ,
+        function gerarPDF() {
+            const elemento = document.querySelector('.container');
+
+            const originalBodyOverflow = document.body.style.overflow;
+            const originalBodyPadding = document.body.style.padding;
+            const originalContainerMargin = elemento.style.margin;
+            const originalContainerBoxShadow = elemento.style.boxShadow;
+
+            window.scrollTo(0, 0);
+            document.body.style.overflow = 'visible';
+            document.body.style.padding = '0';
+            elemento.style.margin = '0 auto';
+            elemento.style.boxShadow = 'none';
+
+            const botoes = document.querySelectorAll('button, .tabs, .header-badge, .action-buttons');
+            botoes.forEach(btn => btn.style.display = 'none');
+
+            const opt = {
+                margin:       [0, 0, 0, 0],
+                filename:     'Checklist-' + document.getElementById('placa').value + '.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  {
                     scale: 2,
                     useCORS: true,
@@ -1198,6 +1332,167 @@ document.addEventListener('DOMContentLoaded', () => {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('data:application/javascript;base64,CmNvbnN0IENBQ0hFX05BTUUgPSAnY2hlY2tsaXN0LXYzLWNhY2hlJzsKY29uc3QgVVJMU19UT19DQUNIRSA9IFsKICAnLycsCiAgJy9pbmRleC5odG1sJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgKGV2ZW50KSA9PiB7CiAgY29uc3QgY2FjaGVPcGVuID0gY2FjaGVzLm9wZW4oQ0FDSEVfTkFNRSkudGhlbigY2xpZW50KSA9PiB7CiAgICByZXR1cm4gY2xpZW50LmFkZEFsbChVUkxzX1RPX0NBQ0hFKTsKICB9KTsKICBldmVudC53YWl0VW50aWwoKGNhY2hlT3Blbik7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIChldmVudCkgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpLnRoZW4oKHJlc3BvbnNlKSA9PiB7CiAgICAgIGlmIChyZXNwb25zZSkgewogICAgICAgIHJldHVybiByZXNwb25zZTsKICAgICAgfQogICAgICByZXR1cm4gZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICB9KQogICk7Cn0pOwo=');
         }
+// ==========================================
+// FUNÇÕES DA NOVA ABA RESUMO (COLE NO FINAL DO SCRIPT)
+// ==========================================
+
+function gerarNumeroOS() {
+    // Pega a placa e remove traços
+    const placa = (document.getElementById('placa')?.value || 'OS').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    
+    // Pega a data (se vazia, usa hoje)
+    let dataRaw = document.getElementById('data')?.value;
+    let dataObj = dataRaw ? new Date(dataRaw + 'T00:00:00') : new Date();
+    
+    // Formata ddmmyyyy
+    const dia = String(dataObj.getDate()).padStart(2, '0');
+    const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+    const ano = String(dataObj.getFullYear());
+    
+    // Retorna PLACA + DATA (Ex: OOX561229012026)
+    return `${placa}${dia}${mes}${ano}`;
+}
+
+function atualizarResumoOS() {
+    // === 1. CABEÇALHO E DADOS BÁSICOS ===
+    // Logo e Empresa
+    const logoSrc = document.getElementById('logo-oficina')?.src;
+    if (logoSrc) document.getElementById('logoResumo').src = logoSrc;
+    
+    document.getElementById('nomeOficinaResumo').textContent = document.getElementById('nome-oficina')?.textContent || 'OFICINA';
+    document.getElementById('enderecoOficinaResumo').textContent = document.getElementById('endereco-oficina')?.textContent || '';
+    document.getElementById('telefoneOficinaResumo').textContent = document.getElementById('telefone-oficina')?.textContent || '';
+    
+    // Número da OS
+    document.getElementById('osNumero').textContent = gerarNumeroOS();
+
+    // Cliente
+    document.getElementById('rNomeCliente').textContent = document.getElementById('nomecliente')?.value || '-';
+    document.getElementById('rCpfCnpj').textContent = document.getElementById('cpfcnpj')?.value || '-';
+    document.getElementById('rCelular').textContent = document.getElementById('celularcliente')?.value || '-';
+
+    // Veículo
+    document.getElementById('rModelo').textContent = document.getElementById('modelo')?.value || '-';
+    document.getElementById('rPlaca').textContent = (document.getElementById('placa')?.value || '-').toUpperCase();
+    document.getElementById('rChassi').textContent = document.getElementById('chassi')?.value || '-';
+    document.getElementById('rKmEntrada').textContent = (document.getElementById('kmentrada')?.value || '') + ' km';
+    
+    // Combustível (Select)
+    let combSelect = document.getElementById('combustivel');
+    let combTexto = combSelect && combSelect.selectedIndex >= 0 ? combSelect.options[combSelect.selectedIndex].text : '-';
+    document.getElementById('rCombustivel').textContent = combTexto;
+
+    // Data/Hora
+    let dataVal = document.getElementById('data')?.value;
+    let horaVal = document.getElementById('hora')?.value;
+    let dataFmt = dataVal ? dataVal.split('-').reverse().join('/') : '--/--/----';
+    document.getElementById('rEntradaDataHora').textContent = `${dataFmt} às ${horaVal || '--:--'}`;
+
+    // Serviços Solicitados
+    document.getElementById('rServicos').textContent = document.getElementById('servicos')?.value || '-';
+
+    // === 2. INSPEÇÃO (CHECKBOXES) - LÓGICA REFORÇADA ===
+    const areaBadges = document.getElementById('rChecklistBadges');
+    areaBadges.innerHTML = ''; // Limpa tudo antes de começar
+
+    // Pega todos os checkboxes marcados dentro do formulário
+    const checkboxesMarcados = document.querySelectorAll('#checklistForm input[type="checkbox"]:checked');
+
+    if (checkboxesMarcados.length === 0) {
+        areaBadges.innerHTML = '<span style="color:#999; font-size:11px;">Nenhum item inspecionado/marcado.</span>';
+    } else {
+        checkboxesMarcados.forEach(cb => {
+            // Tenta achar o texto: 1º no Label 'for', 2º no texto logo depois do input, 3º no value
+            let textoLabel = cb.value; // Valor padrão (ex: ESTEPE)
+            
+            // Tenta pegar o label associado
+            let labelTag = document.querySelector(`label[for="${cb.id}"]`);
+            if (labelTag) {
+                textoLabel = labelTag.textContent;
+            } else if (cb.nextElementSibling && cb.nextElementSibling.tagName === 'LABEL') {
+                // Tenta pegar o próximo elemento se for label
+                textoLabel = cb.nextElementSibling.textContent;
+            }
+
+            // Limpa o texto (tira espaços extras)
+            textoLabel = textoLabel.trim();
+
+            // Cria o selo colorido
+            let span = document.createElement('span');
+            
+            // Palavras chave para pintar de vermelho
+            const palavrasRuim = ['TRINCADO', 'AMASSADO', 'RISCADO', 'QUEBRADO', 'DANIFICADO', 'FALTANDO', 'RUIM'];
+            const ehRuim = palavrasRuim.some(p => textoLabel.toUpperCase().includes(p));
+
+            span.className = ehRuim ? 'os-badge no' : 'os-badge ok';
+            span.innerHTML = ehRuim ? `⚠️ ${textoLabel}` : `✅ ${textoLabel}`;
+            
+            areaBadges.appendChild(span);
+        });
+    }
+
+    // === 3. TABELAS DE ORÇAMENTO (Clona o HTML da aba Orçamento) ===
+    // PEÇAS
+    const origemPecas = document.getElementById('tabelaPecas'); // Tbody original
+    const destinoPecas = document.getElementById('rTabelaPecas'); // Tabela no resumo
+    destinoPecas.innerHTML = ''; 
+
+    if (origemPecas && origemPecas.rows.length > 0) {
+        // Copia linha por linha, mas remove o botão de excluir
+        Array.from(origemPecas.rows).forEach(row => {
+            let desc = row.cells[0].textContent;
+            let valor = row.cells[1].textContent;
+            // Cria nova linha limpa
+            destinoPecas.innerHTML += `<tr><td>${desc}</td><td style="text-align:right;">${valor}</td></tr>`;
+        });
+    } else {
+        destinoPecas.innerHTML = '<tr><td colspan="2" style="color:#999; text-align:center;">-</td></tr>';
+    }
+
+    // SERVIÇOS
+    const origemServicos = document.getElementById('tabelaServicos');
+    const destinoServicos = document.getElementById('rTabelaServicos');
+    destinoServicos.innerHTML = '';
+
+    if (origemServicos && origemServicos.rows.length > 0) {
+        Array.from(origemServicos.rows).forEach(row => {
+            let desc = row.cells[0].textContent;
+            let valor = row.cells[1].textContent;
+            destinoServicos.innerHTML += `<tr><td>${desc}</td><td style="text-align:right;">${valor}</td></tr>`;
+        });
+    } else {
+        destinoServicos.innerHTML = '<tr><td colspan="2" style="color:#999; text-align:center;">-</td></tr>';
+    }
+
+    // TOTAL GERAL
+    const totalGeral = document.getElementById('totalGeralFinal');
+    document.getElementById('rTotalGeral').textContent = totalGeral ? totalGeral.textContent : 'R$ 0,00';
+}
+
+
+function imprimirResumo() {
+    atualizarResumoOS(); // Garante que está atualizado
+    window.print(); // O CSS @media print fará o resto (esconder o resto do site)
+}
+
+function gerarPDFResumo() {
+    atualizarResumoOS();
+    
+    const elemento = document.getElementById('resumoContainer');
+    const nomeArquivo = `OS-${gerarNumeroOS()}.pdf`;
+
+    const opt = {
+        margin:       0, // Sem margem pois o CSS .os-paper já tem padding
+        filename:     nomeArquivo,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Usa a biblioteca html2pdf que já está no seu projeto
+    html2pdf().set(opt).from(elemento).save();
+}
+
     </script>
 <button id="btnSalvarChecklist" onclick="salvarChecklist()">
     💾 Salvar Checklist
@@ -1205,194 +1500,12 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="config.js"></script>
 <script src="app.js"></script>
 
-<!-- CONTAINER OCULTO PDF -->
-<div id="containerPDF" style="display:none; width:210mm; background:#fff; color:#000; font-family:Arial, sans-serif;">
-    <!-- HEADER -->
-    <div style="padding:20px; border-bottom:3px solid #333; display:flex; gap:15px; align-items:center;">
-        <div style="width:80px;"><img id="pdfLogo" src="logo.jpg" style="width:100%; height:auto;"></div>
-        <div style="flex:1;">
-            <h2 id="pdfOficinaNome" style="margin:0; font-size:18px; font-weight:bold;">OFICINA</h2>
-            <div style="font-size:11px; margin-top:5px;">
-                <div id="pdfOficinaEndereco">Endereço...</div>
-                <div id="pdfOficinaTelefone">Tel...</div>
-            </div>
-        </div>
-        <div style="text-align:right;">
-            <div style="background:#333; color:#fff; padding:5px 10px; font-size:12px; font-weight:bold; display:inline-block;">OS N° <span id="pdfOSNumero">--</span></div>
-            <div style="font-size:10px; margin-top:5px;" id="pdfGeradoDataHora">--</div>
-        </div>
-    </div>
-
-    <!-- CLIENTE E VEICULO -->
-    <div style="padding:15px; display:grid; grid-template-columns:1fr 1fr; gap:15px; background:#f5f5f5; border-bottom:1px solid #ddd;">
-        <div>
-            <div style="font-weight:bold; font-size:11px; margin-bottom:4px;">CLIENTE</div>
-            <div style="font-size:11px;">
-                <div id="pdfClienteNome">-</div>
-                <div id="pdfClienteDoc">-</div>
-                <div id="pdfClienteTel">-</div>
-            </div>
-        </div>
-        <div>
-            <div style="font-weight:bold; font-size:11px; margin-bottom:4px;">VEÍCULO</div>
-            <div style="font-size:11px;">
-                <div id="pdfVeiculoPlaca" style="font-weight:bold;">-</div>
-                <div><span id="pdfVeiculoModelo">-</span> | <span id="pdfVeiculoCombustivel">-</span></div>
-                <div>KM: <span id="pdfVeiculoKM">-</span></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SERVIÇOS -->
-    <div style="padding:15px; border-bottom:1px solid #ddd;">
-        <div style="font-weight:bold; font-size:12px; margin-bottom:5px;">SOLICITAÇÃO</div>
-        <div id="pdfServicos" style="font-size:11px; white-space:pre-wrap;">-</div>
-    </div>
-
-    <!-- GRID INSPECAO -->
-    <div style="padding:15px; border-bottom:1px solid #ddd;">
-        <div style="font-weight:bold; font-size:12px; margin-bottom:8px;">INSPEÇÃO VISUAL</div>
-        <div id="pdfInspecaoGrid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;"></div>
-    </div>
-
-    <!-- TOTAIS -->
-    <div style="padding:15px;">
-        <table style="width:100%; border-collapse:collapse; font-size:11px;">
-            <tr>
-                <td valign="top" style="padding-right:15px;">
-                    <div style="font-weight:bold; margin-bottom:5px;">PEÇAS</div>
-                    <table style="width:100%;" id="pdfPecasTable"><tbody></tbody></table>
-                </td>
-                <td valign="top">
-                    <div style="font-weight:bold; margin-bottom:5px;">SERVIÇOS</div>
-                    <table style="width:100%;" id="pdfServicosTable"><tbody></tbody></table>
-                </td>
-            </tr>
-        </table>
-        <div style="margin-top:20px; text-align:right; font-size:16px; font-weight:bold;">
-            TOTAL: <span id="pdfTotalGeral">R$ 0,00</span>
-        </div>
-    </div>
-</div>
-
-
-<script>
-// --- SISTEMA DE PDF CORRIGIDO ---
-
-// Helper: Formata moeda
-const fmtMoeda = (v) => "R$ " + v.toFixed(2).replace('.',',');
-const parseValor = (str) => {
-    if(!str) return 0;
-    return parseFloat(str.replace("R$","").trim().replace(".","").replace(",",".") || 0);
-};
-
-// Gera OS
-function gerarPDF() {
-    console.log("Iniciando geração de PDF...");
-
-    // 1. Verifica Biblioteca
-    if (typeof html2pdf === 'undefined') {
-        alert("ERRO: A biblioteca html2pdf não foi carregada. Verifique sua conexão com a internet ou baixe o arquivo html2pdf.bundle.min.js.");
-        return;
-    }
-
-    // 2. Validações
-    const placa = document.getElementById('placa')?.value || '';
-    const cliente = document.getElementById('nome_cliente')?.value || '';
-    if(!placa || !cliente) {
-        alert("Preencha Placa e Cliente!");
-        return;
-    }
-
-    // 3. Preenche Dados no Container Oculto
-    const container = document.getElementById('containerPDF');
-
-    // Header
-    const cfg = window.OFICINA_CONFIG || {};
-    document.getElementById('pdfLogo').src = cfg.logo || 'logo.jpg';
-    document.getElementById('pdfOficinaNome').innerText = cfg.nome || 'OFICINA';
-    document.getElementById('pdfOficinaEndereco').innerText = cfg.endereco || '';
-    document.getElementById('pdfOficinaTelefone').innerText = cfg.telefone || '';
-
-    const agora = new Date();
-    document.getElementById('pdfOSNumero').innerText = placa.toUpperCase() + '-' + agora.getDate() + (agora.getMonth()+1);
-    document.getElementById('pdfGeradoDataHora').innerText = agora.toLocaleString();
-
-    // Cliente/Veiculo
-    document.getElementById('pdfClienteNome').innerText = cliente;
-    document.getElementById('pdfClienteDoc').innerText = document.getElementById('cpf_cnpj')?.value || '';
-    document.getElementById('pdfClienteTel').innerText = document.getElementById('celular_cliente')?.value || '';
-
-    document.getElementById('pdfVeiculoPlaca').innerText = placa;
-    document.getElementById('pdfVeiculoModelo').innerText = document.getElementById('modelo')?.value || '';
-    document.getElementById('pdfVeiculoCombustivel').innerText = document.getElementById('combustivel')?.value || '';
-    document.getElementById('pdfVeiculoKM').innerText = document.getElementById('km_entrada')?.value || '';
-
-    document.getElementById('pdfServicos').innerText = document.getElementById('servicos')?.value || '';
-
-    // Inspeção
-    const grid = document.getElementById('pdfInspecaoGrid');
-    grid.innerHTML = '';
-    document.querySelectorAll('input[type=checkbox]').forEach(cb => {
-        let label = cb.value;
-        const l = document.querySelector(`label[for="${cb.id}"]`);
-        if(l) label = l.innerText;
-
-        const d = document.createElement('div');
-        d.style.cssText = `padding:5px; font-size:10px; text-align:center; color:#fff; background:${cb.checked ? '#2ecc71':'#e74c3c'}; border-radius:4px;`;
-        d.innerText = (cb.checked ? 'OK' : 'X') + ' ' + label;
-        grid.appendChild(d);
-    });
-
-    // Financeiro
-    let total = 0;
-
-    const fillTable = (srcId, destId) => {
-        const dest = document.getElementById(destId).querySelector('tbody');
-        if(!dest) return;
-        dest.innerHTML = '';
-        const src = document.getElementById(srcId);
-        if(!src) return;
-
-        src.querySelectorAll('tr').forEach(tr => {
-            const tds = tr.querySelectorAll('td');
-            if(tds.length < 2) return;
-            const desc = tds[0].innerText;
-            const val = parseValor(tds[1].innerText);
-            total += val;
-
-            dest.innerHTML += `<tr><td style="border-bottom:1px solid #eee;">${desc}</td><td style="text-align:right; border-bottom:1px solid #eee;">${fmtMoeda(val)}</td></tr>`;
-        });
-    };
-
-    fillTable('tabelaPecas', 'pdfPecasTable');
-    fillTable('tabelaServicos', 'pdfServicosTable');
-    document.getElementById('pdfTotalGeral').innerText = fmtMoeda(total);
-
-    // 4. Renderiza
-    container.style.display = 'block';
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-
-    const opt = {
-        margin: 0,
-        filename: `Checklist-${placa}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    setTimeout(() => {
-        html2pdf().from(container).set(opt).save()
-        .then(() => { container.style.display = 'none'; })
-        .catch(e => {
-            alert('Erro: ' + e);
-            container.style.display = 'none';
-        });
-    }, 500);
-}
-</script>
-
 </body>
 </html>
+
+
+
+
+
+
+

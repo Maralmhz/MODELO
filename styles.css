@@ -726,6 +726,236 @@ button {
 .hidden {
     display: none !important;
 }
+
+/* =========================================
+   ESTILO DO NOVO RESUMO (PAPEL DE IMPRESSÃO)
+   ========================================= */
+
+/* O "Papel" na tela */
+.os-paper {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 30px; /* Margem da folha */
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #333;
+}
+
+/* Cabeçalho do Papel */
+.os-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--color-primary); /* Linha grossa da cor da oficina */
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.os-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.os-logo {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+}
+
+.os-oficina-nome {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-primary);
+    text-transform: uppercase;
+}
+
+.os-oficina-sub {
+    font-size: 11px;
+    color: #555;
+    margin-top: 2px;
+}
+
+.os-header-right {
+    text-align: right;
+}
+
+.os-label-os {
+    font-size: 10px;
+    font-weight: 700;
+    color: #777;
+    letter-spacing: 1px;
+}
+
+.os-numero-os {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--color-primary);
+}
+
+/* Grids e Caixas */
+.os-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.os-box {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    background: #fdfdfd;
+}
+
+.os-box-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: #444;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+}
+
+.os-line {
+    font-size: 12px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+/* Texto de Serviços e Badges */
+.os-text-area {
+    font-size: 12px;
+    white-space: pre-wrap; /* Mantém quebra de linha */
+    color: #333;
+    line-height: 1.4;
+}
+
+.os-badges-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.os-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+.os-badge.ok {
+    background-color: #e6fffa;
+    color: #006d5b;
+    border-color: #b2f5ea;
+}
+.os-badge.no {
+    background-color: #fff5f5;
+    color: #c53030;
+    border-color: #feb2b2;
+}
+
+/* Tabelas do Papel */
+.os-table-header {
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.os-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+.os-table th, .os-table td {
+    border: 1px solid #e0e0e0;
+    padding: 6px;
+    text-align: left;
+}
+.os-table td:last-child {
+    text-align: right;
+    width: 70px;
+    font-weight: 600;
+}
+
+/* Total e Rodapé */
+.os-total-row {
+    margin-top: 15px;
+    background: #eee;
+    padding: 10px 15px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 800;
+}
+.os-total-value {
+    font-size: 18px;
+    color: var(--color-success); /* Verde Sucesso */
+}
+
+.os-assinaturas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 40px;
+}
+.os-assina-box {
+    border-top: 1px solid #999;
+    padding-top: 5px;
+    text-align: center;
+    font-size: 10px;
+    color: #666;
+}
+
+.os-footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 9px;
+    color: #aaa;
+}
+
+/* Utilitários */
+.mt-10 { margin-top: 15px; }
+
+/* CONFIGURAÇÃO DE IMPRESSÃO (O SEGREDO!) */
+@media print {
+    body * {
+        visibility: hidden; /* Esconde tudo */
+    }
+    
+    /* Mostra só a aba Resumo */
+    #resumo, #resumo * {
+        visibility: visible;
+    }
+
+    #resumo {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: white;
+    }
+
+    /* Esconde botões na impressão */
+    .action-buttons, .tabs, .header {
+        display: none !important;
+    }
+
+    .os-paper {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+    }
+}
+
+
 </style>
 
 
