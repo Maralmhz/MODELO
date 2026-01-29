@@ -6,10 +6,9 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="description" content="Checklist de Oficina - App Offline com PDF">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="wizard.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="logo.png">
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.jpg">
+    <link rel="icon" type="image/png" href="logo.jpg">
    <title id="titulo-pagina">Checklist de Entrada – Oficina</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -17,7 +16,7 @@
     <div class="container">
        <div class="header">
     <div class="logo-container">
-        <img id="logo-oficina" src="logo.png" alt="Logo da Oficina">
+        <img id="logo-oficina" src="logo.jpg" alt="Logo da Oficina">
     </div>
     <div class="header-content">
         <!-- ✅ NEUTRO - PREENCHER NO CONFIG.JS -->
@@ -30,6 +29,10 @@
         <div class="endereco-oficina" id="endereco-oficina">
             ENDEREÇO DA OFICINA
         </div>
+        <div class="cnpj-oficina" id="cnpj-oficina">
+    CNPJ: 00.000.000/0000-00
+</div>
+
 
                 <div class="status-sync">
                     <div class="sync-dot" id="syncStatus"></div>
@@ -292,7 +295,6 @@
                 <div id="graficoMarcas" style="margin-top: 20px;"></div>
 
                 <div class="action-buttons">
-<button id="btnSalvarChecklist" class="btn-success" onclick="salvarChecklist()">Salvar Checklist</button>
                     <button class="btn-primary" onclick="exportarDados()">💾 Exportar Todos (JSON)</button>
                     <button class="btn-danger" onclick="limparTodosDados()">🗑️ Limpar Histórico</button>
                 </div>
@@ -316,12 +318,12 @@
                 <!-- COMPLEXIDADE -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="complexidade">Complexidade do evento</label>
+                        <label for="complexidade">Tipo de evento</label>
                         <select id="complexidade" name="complexidade">
                             <option value="">Selecione...</option>
-                            <option value="pequena monta">Pequena monta</option>
-                            <option value="meia monta">Meia monta</option>
-                            <option value="grande monta">Grande monta</option>
+                            <option value="Evento pequeno">Evento pequeno</option>
+                            <option value="Evento médio">Evento médio</option>
+                            <option value="Evento grande">Evento grande</option>
                         </select>
                     </div>
                 </div>
@@ -413,8 +415,8 @@
 
 </div>
                 <div class="action-buttons">
-    <button type="button" class="btn-success" onclick="gerarPDF()">📄 Gerar PDF</button>
-</div>
+                    <button type="button" class="btn-success" onclick="gerarPDF()">📄 Gerar PDF</button>
+                </div>
             </div>
         </div>
 <!-- ABA FOTOS ✅ PERFEITA -->
@@ -462,100 +464,602 @@
 </div>
 
     </div>
-<button id="btnSalvarChecklist" onclick="salvarChecklist()">
-    💾 Salvar Checklist
-</button>
-<script src="config.js"></script>
-<script src="app.js"></script>
-<script src="wizard.js"></script>
-<script src="os_system.js"></script>
-<script src="pdf_generator.js"></script>
-<script src="setup_buttons.js"></script>
-<script>
-// ==========================================
-// 1. VARIÁVEIS GLOBAIS
-// ==========================================
-let itensOrcamento = []; 
 
-// ==========================================
-// 2. NAVEGAÇÃO ENTRE ABAS (FIXA)
-// ==========================================
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+<!-- ======================================================
+     CONTAINER OCULTO PARA GERAR PDF (ORDEM DE SERVIÇO)
+     (Não aparece na tela; usado apenas para o html2pdf)
+====================================================== -->
+<div id="containerPDF" style="display:none; width:210mm; background:#fff;">
+  <div style="padding:18px 18px 12px 18px; border-bottom:4px solid var(--color-primary); display:flex; gap:16px; align-items:flex-start;">
+    <div style="width:90px; flex:0 0 90px;">
+      <img id="pdfLogo" src="logo.jpg" alt="Logo" style="width:100%; height:auto; object-fit:contain;">
+    </div>
+    <div style="flex:1;">
+      <div id="pdfOficinaNome" style="font-size:20px; font-weight:800; color:var(--color-primary); line-height:1.1;">OFICINA</div>
+      <div id="pdfOficinaSubtitulo" style="margin-top:4px; font-size:11px; color:#666;">Checklist de entrada e inspeção veicular</div>
+      <div style="margin-top:8px; font-size:11px; color:#444; line-height:1.5;">
+        <div>📱 <span id="pdfOficinaTelefone">(00) 00000-0000</span></div>
+        <div><span id="pdfOficinaEndereco">ENDEREÇO DA OFICINA</span></div>
+        <div><span id="pdfOficinaCNPJ">CNPJ: --</span></div>
+      </div>
+    </div>
+    <div style="text-align:right; flex:0 0 auto;">
+      <div style="display:inline-block; background:var(--color-primary); color:#fff; padding:10px 12px; border-radius:8px; font-weight:800; font-size:12px;">
+        OS Nº <span id="pdfOSNumero">0001</span>
+      </div>
+      <div style="margin-top:6px; font-size:10px; color:#666; line-height:1.4;">
+        <div>Data: <span id="pdfGeradoData">--/--/----</span></div>
+        <div>Hora: <span id="pdfGeradoHora">--:--</span></div>
+      </div>
+    </div>
+  </div>
 
-    const target = document.getElementById(tabId);
-    if (target) {
-        target.classList.add('active');
+  <div style="padding:14px 18px; background:#fafafa; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div style="background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px;">
+      <div style="font-weight:800; font-size:11px; color:var(--color-primary); padding-bottom:8px; border-bottom:2px solid var(--color-primary);">CLIENTE</div>
+      <div style="margin-top:8px; font-size:11px; color:#333; line-height:1.6;">
+        <div><b>Nome:</b> <span id="pdfClienteNome">-</span></div>
+        <div><b>CPF/CNPJ:</b> <span id="pdfClienteDoc">-</span></div>
+        <div><b>Tel:</b> <span id="pdfClienteTel">-</span></div>
+        <div><b>Endereço:</b> <span id="pdfClienteEndereco">-</span></div>
+      </div>
+    </div>
 
-        // Ativa botões
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            const oc = btn.getAttribute('onclick');
-            if (oc && oc.includes(tabId)) btn.classList.add('active');
-        });
+    <div style="background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px;">
+      <div style="font-weight:800; font-size:11px; color:var(--color-primary); padding-bottom:8px; border-bottom:2px solid var(--color-primary);">VEÍCULO</div>
+      <div style="margin-top:8px; font-size:11px; color:#333; line-height:1.6;">
+        <div><b>Placa:</b> <span id="pdfVeiculoPlaca">-</span></div>
+        <div><b>Modelo:</b> <span id="pdfVeiculoModelo">-</span></div>
+        <div><b>Chassi:</b> <span id="pdfVeiculoChassi">-</span></div>
+        <div><b>KM Entrada:</b> <span id="pdfVeiculoKM">-</span></div>
+        <div><b>Entrada:</b> <span id="pdfVeiculoEntrada">-</span></div>
+        <div><b>Combustível:</b> <span id="pdfVeiculoCombustivel">-</span></div>
+      </div>
+    </div>
+  </div>
 
-        if (tabId === 'historico') carregarHistorico();
-        if (tabId === 'relatorios') atualizarRelatorios();
-        if (tabId === 'orcamento') {
-            atualizarResumoVeiculo();
-            renderizarTabela();
+  <div style="padding:14px 18px;">
+    <div style="background:var(--color-primary); color:#fff; padding:10px 12px; border-radius:8px; font-size:12px; font-weight:800;">SERVIÇOS SOLICITADOS</div>
+    <div id="pdfServicos" style="margin-top:10px; background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; font-size:11px; color:#333; min-height:52px; white-space:pre-wrap; line-height:1.5;">-</div>
+  </div>
+
+  <div style="padding:14px 18px;">
+    <div style="background:var(--color-primary); color:#fff; padding:10px 12px; border-radius:8px; font-size:12px; font-weight:800;">INSPEÇÃO DE ENTRADA</div>
+    <div id="pdfInspecaoGrid" style="margin-top:10px; display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;"></div>
+  </div>
+
+  <div style="padding:14px 18px;">
+    <div style="font-weight:800; font-size:11px; color:var(--color-primary); padding-bottom:8px; border-bottom:2px solid var(--color-primary);">ITENS (PEÇAS E SERVIÇOS)</div>
+
+    <div style="margin-top:10px;">
+      <div style="font-weight:800; font-size:11px; color:#333; margin-bottom:6px;">🔩 Peças</div>
+      <table style="width:100%; border-collapse:collapse; font-size:11px;">
+        <thead>
+          <tr style="background:#f3f3f3;">
+            <th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th>
+            <th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th>
+          </tr>
+        </thead>
+        <tbody id="pdfPecasBody"></tbody>
+        <tfoot>
+          <tr>
+            <td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Peças:</td>
+            <td id="pdfTotalPecas" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:var(--color-primary);">R$ 0,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div style="margin-top:14px;">
+      <div style="font-weight:800; font-size:11px; color:#333; margin-bottom:6px;">🔧 Serviços</div>
+      <table style="width:100%; border-collapse:collapse; font-size:11px;">
+        <thead>
+          <tr style="background:#f3f3f3;">
+            <th style="border:1px solid #ddd; padding:7px; text-align:left;">Descrição</th>
+            <th style="border:1px solid #ddd; padding:7px; text-align:right; width:95px;">Valor</th>
+          </tr>
+        </thead>
+        <tbody id="pdfServicosBody"></tbody>
+        <tfoot>
+          <tr>
+            <td style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800;">Total Serviços:</td>
+            <td id="pdfTotalServicos" style="border:1px solid #ddd; padding:7px; text-align:right; font-weight:800; color:#0056b3;">R$ 0,00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div style="margin-top:14px; padding:12px; border-radius:10px; background:#efefef; text-align:right;">
+      <div style="font-size:11px; color:#555; font-weight:800;">TOTAL GERAL (Peças + Serviços):</div>
+      <div id="pdfTotalGeral" style="font-size:18px; font-weight:900; color:#27ae60; margin-top:4px;">R$ 0,00</div>
+    </div>
+  </div>
+
+  <div style="padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+    <div style="border-top:2px solid #000; padding-top:6px; text-align:center; font-size:10px; color:#333;">Assinatura do Cliente</div>
+    <div style="border-top:2px solid #000; padding-top:6px; text-align:center; font-size:10px; color:#333;">Responsável pela Inspeção</div>
+  </div>
+
+  <div style="padding:12px 18px 18px 18px; text-align:center; font-size:9px; color:#666; border-top:1px solid #eee;">
+    Gerado em <span id="pdfGeradoDataHora">--/--/---- --:--</span>
+  </div>
+</div>
+
+
+    <script>
+function salvarChecklist() {
+
+    const dados = {};
+
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+
+        if (!el.name && !el.id) return;
+
+        const chave = el.name || el.id;
+
+        if (el.type === 'checkbox') {
+            dados[chave] = el.checked;
+        } else if (el.type === 'radio') {
+            if (el.checked) dados[chave] = el.value;
+        } else {
+            dados[chave] = el.value;
         }
+    });
+
+    // peças adicionadas dinamicamente
+    dados.pecas = [];
+    document.querySelectorAll('.linha-peca').forEach(linha => {
+        const peca = {};
+        linha.querySelectorAll('input, select').forEach(campo => {
+            peca[campo.name || campo.className] = campo.value;
+        });
+        dados.pecas.push(peca);
+    });
+
+    // fotos
+    dados.fotos = [];
+    document.querySelectorAll('#previewFotos img').forEach(img => {
+        dados.fotos.push(img.src);
+    });
+
+    // salvar local
+    localStorage.setItem('checklistSalvo', JSON.stringify(dados));
+
+    alert('Checklist salvo com sucesso.');
+}
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                if (btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
+            });
+
+            if (tabId === 'historico') carregarHistorico();
+            if (tabId === 'relatorios') atualizarRelatorios();
+            if (tabId === 'orcamento') atualizarResumoVeiculo(); // garante resumo atualizado ao abrir Peças
+        }
+
+        function salvarChecklist() {
+            const placa = document.getElementById('placa').value;
+            if (!placa) {
+                alert("Por favor, preencha pelo menos a PLACA para salvar.");
+                return;
+            }
+
+            const formData = {};
+            const elements = document.getElementById('checklistForm').elements;
+
+            for (let i = 0; i < elements.length; i++) {
+                const item = elements[i];
+                if (item.name) {
+                    if (item.type === 'checkbox') {
+                        if (item.checked) {
+                            if (!formData[item.name]) formData[item.name] = [];
+                            formData[item.name].push(item.value);
+                        }
+                    } else if (item.type !== 'button') {
+                        formData[item.name] = item.value;
+                    }
+                }
+            }
+
+            const checklist = {
+                id: Date.now(),
+                data_criacao: new Date().toISOString(),
+                ...formData
+            };
+
+            let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+            checklists.push(checklist);
+            localStorage.setItem('checklists', JSON.stringify(checklists));
+
+            alert("✅ Checklist salvo com sucesso no Histórico!");
+            document.getElementById('checklistForm').reset();
+            atualizarResumoVeiculo();
+            switchTab('historico');
+        }
+
+        function carregarHistorico() {
+            const listaDiv = document.getElementById('checklistsList');
+            const emptyMsg = document.getElementById('emptyMessage');
+            const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+
+            listaDiv.innerHTML = '';
+
+            if (checklists.length === 0) {
+                emptyMsg.style.display = 'block';
+                return;
+            } else {
+                emptyMsg.style.display = 'none';
+            }
+
+            checklists.slice().reverse().forEach(item => {
+                const dataFormatada = new Date(item.data_criacao).toLocaleDateString('pt-BR');
+                const horaFormatada = new Date(item.data_criacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+                const card = document.createElement('div');
+                card.className = 'checklist-item';
+                card.innerHTML = `
+                    <div class="checklist-info">
+                        <h4>${(item.placa || '').toUpperCase()} - ${item.modelo || 'Modelo não inf.'}</h4>
+                        <p>📅 ${dataFormatada} às ${horaFormatada} | 👤 ${item.nome_cliente || 'Cliente não inf.'}</p>
+                    </div>
+                    <div class="checklist-actions">
+                        <button class="btn-small btn-secondary" onclick="carregarChecklist(${item.id})">✏️ Editar</button>
+                        <button class="btn-small btn-danger" onclick="excluirChecklist(${item.id})">🗑️</button>
+                    </div>
+                `;
+                listaDiv.appendChild(card);
+            });
+        }
+
+        function carregarChecklist(id) {
+            const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+            const item = checklists.find(c => c.id === id);
+
+            if (item) {
+                switchTab('novo-checklist');
+
+                for (const key in item) {
+                    const el = document.getElementsByName(key)[0];
+                    if (el && el.type !== 'checkbox' && el.type !== 'file') {
+                        el.value = item[key];
+                    }
+                }
+
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+                if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
+                if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
+                if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
+                if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
+
+                atualizarResumoVeiculo();
+            }
+        }
+
+        function marcarCheckbox(name, value) {
+            const els = document.getElementsByName(name);
+            els.forEach(el => { if (el.value === value) el.checked = true; });
+        }
+
+        function excluirChecklist(id) {
+            if (confirm("Tem certeza que deseja excluir este checklist?")) {
+                let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+                checklists = checklists.filter(c => c.id !== id);
+                localStorage.setItem('checklists', JSON.stringify(checklists));
+                carregarHistorico();
+            }
+        }
+
+        function filtrarChecklists() {
+            const termo = document.getElementById('searchInput').value.toLowerCase();
+            const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+            const listaDiv = document.getElementById('checklistsList');
+            const emptyMsg = document.getElementById('emptyMessage');
+
+            listaDiv.innerHTML = '';
+
+            const filtrados = checklists.filter(item => {
+                const texto = ((item.placa || '') + ' ' + (item.modelo || '') + ' ' + (item.nome_cliente || '')).toLowerCase();
+                return texto.includes(termo);
+            });
+
+            if (!filtrados.length) {
+                emptyMsg.style.display = 'block';
+                return;
+            } else {
+                emptyMsg.style.display = 'none';
+            }
+
+            filtrados.slice().reverse().forEach(item => {
+                const dataFormatada = new Date(item.data_criacao).toLocaleDateString('pt-BR');
+                const horaFormatada = new Date(item.data_criacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+                const card = document.createElement('div');
+                card.className = 'checklist-item';
+                card.innerHTML = `
+                    <div class="checklist-info">
+                        <h4>${(item.placa || '').toUpperCase()} - ${item.modelo || 'Modelo não inf.'}</h4>
+                        <p>📅 ${dataFormatada} às ${horaFormatada} | 👤 ${item.nome_cliente || 'Cliente não inf.'}</p>
+                    </div>
+                    <div class="checklist-actions">
+                        <button class="btn-small btn-secondary" onclick="carregarChecklist(${item.id})">✏️ Editar</button>
+                        <button class="btn-small btn-danger" onclick="excluirChecklist(${item.id})">🗑️</button>
+                    </div>
+                `;
+                listaDiv.appendChild(card);
+            });
+        }
+
+        function ordenarChecklists() {
+            const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+            checklists.sort((a, b) => {
+                const placaA = (a.placa || '').toUpperCase();
+                const placaB = (b.placa || '').toUpperCase();
+                if (placaA < placaB) return -1;
+                if (placaA > placaB) return 1;
+                return 0;
+            });
+            localStorage.setItem('checklists', JSON.stringify(checklists));
+            carregarHistorico();
+        }
+
+        function obterProximaOS() {
+    const chave = 'OS_SEQ';
+    const atual = parseInt(localStorage.getItem(chave) || '0', 10);
+    const proximo = atual + 1;
+    localStorage.setItem(chave, String(proximo));
+    // exibe com 4 dígitos: 0001, 0002...
+    return String(proximo).padStart(4, '0');
+}
+
+function montarTabelaPDF(tbodyId, pdfBodyId) {
+    const tbody = document.getElementById(tbodyId);
+    const pdfBody = document.getElementById(pdfBodyId);
+    pdfBody.innerHTML = '';
+
+    let total = 0;
+    if (tbody) {
+        const linhas = Array.from(tbody.querySelectorAll('tr'));
+        linhas.forEach(tr => {
+            const tds = tr.querySelectorAll('td');
+            if (tds.length < 2) return;
+            const desc = (tds[0].textContent || '').trim();
+            const valorTxt = (tds[1].textContent || '').replace('R$', '').trim();
+            const valorNum = parseFloat(valorTxt.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+
+            if (!desc) return;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="border:1px solid #ddd; padding:7px;">${desc}</td>
+                <td style="border:1px solid #ddd; padding:7px; text-align:right;">R$ ${valorNum.toFixed(2)}</td>
+            `;
+            pdfBody.appendChild(row);
+            total += valorNum;
+        });
     }
+
+    if (!pdfBody.children.length) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="2" style="border:1px solid #ddd; padding:10px; text-align:center; color:#999;">Nenhum item</td>';
+        pdfBody.appendChild(row);
+    }
+
+    return total;
 }
 
-// ==========================================
-// 3. PEÇAS E SERVIÇOS
-// ==========================================
+function gerarPDF() {
+    const placa = (document.getElementById('placa')?.value || '').trim();
+    const cliente = (document.getElementById('nome_cliente')?.value || '').trim();
+    if (!placa || !cliente) {
+        alert('⚠️ Preencha PLACA e NOME do cliente antes de gerar o PDF.');
+        return;
+    }
+
+    // OS sequencial
+    const os = obterProximaOS();
+
+    // Data/hora
+    const agora = new Date();
+    const data = agora.toLocaleDateString('pt-BR');
+    const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    // Oficina (config.js)
+    const cfg = window.OFICINA_CONFIG || {};
+    document.getElementById('pdfLogo').src = cfg.logo || 'logo.jpg';
+    document.getElementById('pdfOficinaNome').textContent = (cfg.nome || 'OFICINA').toUpperCase();
+    document.getElementById('pdfOficinaSubtitulo').textContent = cfg.subtitulo || 'Checklist de entrada e inspeção veicular';
+    document.getElementById('pdfOficinaTelefone').textContent = cfg.telefone || '(00) 00000-0000';
+    document.getElementById('pdfOficinaEndereco').textContent = cfg.endereco || 'ENDEREÇO DA OFICINA';
+    document.getElementById('pdfOficinaCNPJ').textContent = cfg.cnpj ? `CNPJ: ${cfg.cnpj}` : 'CNPJ: --';
+
+    // Topo
+    document.getElementById('pdfOSNumero').textContent = os;
+    document.getElementById('pdfGeradoData').textContent = data;
+    document.getElementById('pdfGeradoHora').textContent = hora;
+    document.getElementById('pdfGeradoDataHora').textContent = `${data} ${hora}`;
+
+    // Cliente
+    document.getElementById('pdfClienteNome').textContent = cliente.toUpperCase();
+    document.getElementById('pdfClienteDoc').textContent = (document.getElementById('cpf_cnpj')?.value || '-');
+    document.getElementById('pdfClienteTel').textContent = (document.getElementById('celular_cliente')?.value || '-');
+    document.getElementById('pdfClienteEndereco').textContent = (document.getElementById('endereco_cliente')?.value || '-');
+
+    // Veículo
+    document.getElementById('pdfVeiculoPlaca').textContent = placa.toUpperCase();
+    document.getElementById('pdfVeiculoModelo').textContent = (document.getElementById('modelo')?.value || '-');
+    document.getElementById('pdfVeiculoChassi').textContent = (document.getElementById('chassi')?.value || '-');
+    document.getElementById('pdfVeiculoKM').textContent = (document.getElementById('km_entrada')?.value || '-');
+    const dataEnt = (document.getElementById('data')?.value || '-');
+    const horaEnt = (document.getElementById('hora')?.value || '-');
+    document.getElementById('pdfVeiculoEntrada').textContent = `${dataEnt} ${horaEnt}`;
+    const combSel = document.getElementById('combustivel');
+    const combTxt = combSel && combSel.selectedOptions?.[0] ? combSel.selectedOptions[0].textContent : (combSel?.value || '-');
+    document.getElementById('pdfVeiculoCombustivel').textContent = (combTxt || '-');
+
+    // Serviços solicitados
+    document.getElementById('pdfServicos').textContent = (document.getElementById('servicos')?.value || '-');
+
+    // Inspeção (equipamentos + caracteristicas)
+    const grid = document.getElementById('pdfInspecaoGrid');
+    grid.innerHTML = '';
+    const lista = [
+        ...document.querySelectorAll('input[type="checkbox"][name="equipamentos"]'),
+        ...document.querySelectorAll('input[type="checkbox"][name="caracteristicas"]')
+    ];
+
+    lista.forEach(cb => {
+        const label = document.querySelector(`label[for="${cb.id}"]`)?.textContent?.trim() || cb.value || cb.id;
+        const ok = !!cb.checked;
+        const bg = ok ? '#27ae60' : '#e74c3c';
+        const ic = ok ? '✅' : '❌';
+        const el = document.createElement('div');
+        el.style.cssText = `background:${bg}; color:#fff; padding:9px 8px; border-radius:8px; font-size:10px; font-weight:800; text-align:center;`;
+        el.textContent = `${ic} ${label}`;
+        grid.appendChild(el);
+    });
+
+    // Tabelas (usa o que já existe na aba orçamento)
+    const totalPecas = montarTabelaPDF('tabelaPecas', 'pdfPecasBody');
+    const totalServicos = montarTabelaPDF('tabelaServicos', 'pdfServicosBody');
+
+    document.getElementById('pdfTotalPecas').textContent = `R$ ${totalPecas.toFixed(2)}`;
+    document.getElementById('pdfTotalServicos').textContent = `R$ ${totalServicos.toFixed(2)}`;
+    const totalGeral = totalPecas + totalServicos;
+    document.getElementById('pdfTotalGeral').textContent = `R$ ${totalGeral.toFixed(2)}`;
+
+    // Gerar PDF
+    const el = document.getElementById('containerPDF');
+    const opt = {
+        margin: [4, 4, 4, 4],
+        filename: `OS-${os}-${placa.toUpperCase()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(el).save();
+}
+
+
+        function limparFormulario() {
+            if (confirm("Limpar todos os campos do formulário?")) {
+                document.getElementById('checklistForm').reset();
+                atualizarResumoVeiculo();
+            }
+        }
+
+        function exportarDados() {
+            const db = JSON.parse(localStorage.getItem('checklists') || '[]');
+            if (!db.length) {
+                alert("Não há dados para exportar.");
+                return;
+            }
+            const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'checklists.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function limparTodosDados() {
+            if (confirm("Deseja apagar TODO o histórico?")) {
+                localStorage.removeItem('checklists');
+                carregarHistorico();
+                alert("Histórico limpo.");
+            }
+        }
+
+        function atualizarRelatorios() {
+            const db = JSON.parse(localStorage.getItem('checklists') || '[]');
+
+            document.getElementById('totalChecklists').textContent = db.length;
+
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth();
+            const anoAtual = hoje.getFullYear();
+
+            const doMes = db.filter(item => {
+                if (!item.data_criacao) return false;
+                const dataItem = new Date(item.data_criacao);
+                return dataItem.getMonth() === mesAtual && dataItem.getFullYear() === anoAtual;
+            });
+            document.getElementById('checklistsMes').textContent = doMes.length;
+
+            const marcas = {};
+            db.forEach(item => {
+                const modeloTexto = item.modelo || 'Não Informado';
+                const m = modeloTexto.split(' ')[0].toUpperCase();
+                marcas[m] = (marcas[m] || 0) + 1;
+            });
+
+            const sortedMarcas = Object.entries(marcas).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            let htmlGrafico = '';
+            sortedMarcas.forEach(([marca, qtd]) => {
+                const pct = (qtd / db.length) * 100;
+                htmlGrafico += `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:2px;">
+                            <strong>${marca}</strong>
+                            <span>${qtd}</span>
+                        </div>
+                        <div style="background:#eee; height:8px; border-radius:4px; overflow:hidden;">
+                            <div style="background:var(--color-primary); width:${pct}%; height:100%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!sortedMarcas.length) {
+                htmlGrafico = '<p style="text-align:center; color:#999; font-size:12px;">Sem dados suficientes.</p>';
+            }
+
+            document.getElementById('graficoMarcas').innerHTML = htmlGrafico;
+        }
+
+// ORÇAMENTO - PEÇAS & SERVIÇOS - SEPARADOS
+let itensOrcamento = [];
+
 function adicionarItemManual() {
-    const desc = document.getElementById('descricaoItem').value;
-    const val = document.getElementById('valorItem').value;
-    const tipo = document.querySelector('input[name="tipoItem"]:checked')?.value || 'peca';
+    const descricaoInput = document.getElementById('descricaoItem');
+    const valorInput = document.getElementById('valorItem');
+    
+    // Captura qual tipo foi selecionado (radio button)
+    const tipo = document.querySelector('input[name="tipoItem"]:checked').value; 
 
-    if (!desc || !val) { alert("Preencha descrição e valor!"); return; }
+    const descricao = descricaoInput.value.trim();
+    const valor = parseFloat(valorInput.value || '0');
 
-    itensOrcamento.push({
+    if (!descricao) {
+        alert('Informe a descrição do item.');
+        descricaoInput.focus();
+        return;
+    }
+    if (isNaN(valor) || valor < 0) {
+        alert('Informe um valor válido.');
+        valorInput.focus();
+        return;
+    }
+
+    const item = {
         id: Date.now(),
-        descricao: desc.toUpperCase(),
-        valor: parseFloat(val),
-        tipo: tipo
-    });
+        descricao,
+        valor,
+        tipo // salva 'peca' ou 'servico'
+    };
 
+    itensOrcamento.push(item);
     renderizarTabela();
-    document.getElementById('descricaoItem').value = '';
-    document.getElementById('valorItem').value = '';
-    document.getElementById('descricaoItem').focus();
-}
-
-function renderizarTabela() {
-    const tbodyPecas = document.getElementById('tabelaPecas');
-    const tbodyServicos = document.getElementById('tabelaServicos');
-
-    if (!tbodyPecas || !tbodyServicos) return;
-
-    tbodyPecas.innerHTML = '';
-    tbodyServicos.innerHTML = '';
-
-    let totalP = 0;
-    let totalS = 0;
-
-    itensOrcamento.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.style.borderBottom = '1px solid #eee';
-        tr.innerHTML = `
-            <td style="padding:8px;">${item.descricao}</td>
-            <td style="padding:8px; text-align:right;">R$ ${item.valor.toFixed(2)}</td>
-            <td style="padding:8px; text-align:center;">
-                <button onclick="removerItem(${item.id})" style="background:none; border:none; cursor:pointer;">❌</button>
-            </td>
-        `;
-
-        if (item.tipo === 'peca') { tbodyPecas.appendChild(tr); totalP += item.valor; } 
-        else { tbodyServicos.appendChild(tr); totalS += item.valor; }
-    });
-
-    if(document.getElementById('totalPecas')) document.getElementById('totalPecas').innerText = `R$ ${totalP.toFixed(2)}`;
-    if(document.getElementById('totalServicos')) document.getElementById('totalServicos').innerText = `R$ ${totalS.toFixed(2)}`;
-    if(document.getElementById('totalGeralFinal')) document.getElementById('totalGeralFinal').innerText = `R$ ${(totalP + totalS).toFixed(2)}`;
+    
+    descricaoInput.value = '';
+    valorInput.value = '';
+    descricaoInput.focus();
 }
 
 function removerItem(id) {
@@ -563,348 +1067,370 @@ function removerItem(id) {
     renderizarTabela();
 }
 
-// ==========================================
-// 4. SALVAR E CARREGAR
-// ==========================================
-function salvarChecklist() {
-    const placa = document.getElementById('placa').value;
-    if (!placa) { alert("Preencha a PLACA para salvar."); return; }
+function renderizarTabela() {
+    const tbodyPecas = document.getElementById('tabelaPecas');
+    const tbodyServicos = document.getElementById('tabelaServicos');
+    
+    const elTotalPecas = document.getElementById('totalPecas');
+    const elTotalServicos = document.getElementById('totalServicos');
+    const elTotalGeral = document.getElementById('totalGeralFinal');
 
-    const formData = {};
-    document.querySelectorAll('input, select, textarea').forEach(el => {
-        if (!el.name) return;
-        if (el.type === 'checkbox') {
-            if (el.checked) {
-                if (!formData[el.name]) formData[el.name] = [];
-                formData[el.name].push(el.value);
-            }
-        } else if (el.type !== 'radio' || el.checked) {
-            formData[el.name] = el.value;
+    // Limpa tabelas
+    if(tbodyPecas) tbodyPecas.innerHTML = '';
+    if(tbodyServicos) tbodyServicos.innerHTML = '';
+
+    let somaPecas = 0;
+    let somaServicos = 0;
+
+    itensOrcamento.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="border:1px solid #ddd; padding:6px;">${item.descricao}</td>
+          <td style="border:1px solid #ddd; padding:6px; text-align:right;">R$ ${item.valor.toFixed(2)}</td>
+          <td style="border:1px solid #ddd; padding:6px; text-align:center;">
+            <button class="btn-small btn-danger" onclick="removerItem(${item.id})">🗑️</button>
+          </td>
+        `;
+
+        if (item.tipo === 'servico') {
+            somaServicos += item.valor;
+            if(tbodyServicos) tbodyServicos.appendChild(tr);
+        } else {
+            // Default é peça
+            somaPecas += item.valor;
+            if(tbodyPecas) tbodyPecas.appendChild(tr);
         }
     });
 
-    const checklist = {
-        id: Date.now(),
-        data_criacao: new Date().toISOString(),
-        itensOrcamento: itensOrcamento,
-        ...formData
-    };
-
-    let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    checklists.push(checklist);
-    localStorage.setItem('checklists', JSON.stringify(checklists));
-
-    alert("✅ Salvo com sucesso!");
-    limparFormulario();
-    switchTab('historico');
+    // Atualiza totais na tela
+    if(elTotalPecas) elTotalPecas.textContent = 'R$ ' + somaPecas.toFixed(2);
+    if(elTotalServicos) elTotalServicos.textContent = 'R$ ' + somaServicos.toFixed(2);
+    
+    const somaTotal = somaPecas + somaServicos;
+    if(elTotalGeral) elTotalGeral.textContent = 'R$ ' + somaTotal.toFixed(2);
 }
 
-function carregarChecklist(id) {
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    const item = checklists.find(c => c.id === id);
+        // ENTER nos campos de Peças & Serviços adiciona linha
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarHistorico();
+            atualizarResumoVeiculo();
 
-    if (item) {
-        switchTab('novo-checklist');
-        for (const key in item) {
-            const el = document.getElementsByName(key)[0];
-            if (el && el.type !== 'checkbox' && el.type !== 'file') el.value = item[key];
-        }
-        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        ['equipamentos', 'caracteristicas', 'cambio', 'tracao'].forEach(gp => {
-            if (item[gp]) item[gp].forEach(val => {
-                const cb = document.querySelector(`input[name="${gp}"][value="${val}"]`);
-                if (cb) cb.checked = true;
+            const descricaoItem = document.getElementById('descricaoItem');
+            const valorItem = document.getElementById('valorItem');
+
+            descricaoItem.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    adicionarItemManual();
+                }
+            });
+
+            valorItem.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    adicionarItemManual();
+                }
+            });
+
+            const camposResumo = ['placa','modelo','chassi','km_entrada','data','hora','combustivel','complexidade'];
+            camposResumo.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const tipo = (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'time') ? 'change' : 'input';
+                el.addEventListener(tipo, atualizarResumoVeiculo);
             });
         });
-        itensOrcamento = item.itensOrcamento || []; 
-        renderizarTabela(); 
-        atualizarResumoVeiculo();
-    }
-}
 
-function limparFormulario() {
-    document.getElementById('checklistForm').reset();
-    itensOrcamento = []; 
-    renderizarTabela();  
-    atualizarResumoVeiculo();
-}
+        function atualizarResumoVeiculo() {
+            const placa = document.getElementById('placa').value || '-';
+            const modelo = document.getElementById('modelo').value || '-';
+            const chassi = document.getElementById('chassi').value || '-';
+            const kmEntrada = document.getElementById('km_entrada').value || '-';
+            const data = document.getElementById('data').value || '-';
+            const hora = document.getElementById('hora').value || '-';
+            const combustivel = document.getElementById('combustivel').value || '-';
+            const complexidade = document.getElementById('complexidade').value || '-';
 
-// ==========================================
-// 5. PDF DEFINITIVO (A4 CENTRALIZADO)
-// ==========================================
-window.emitirOS = async function() {
-    const getBase64ImageFromUrl = async (imageUrl) => {
-        try {
-            const res = await fetch(imageUrl);
-            const blob = await res.blob();
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => resolve(null);
-                reader.readAsDataURL(blob);
-            });
-        } catch (e) { return null; }
-    };
+            document.getElementById('resumoPlaca').textContent = placa;
+            document.getElementById('resumoModelo').textContent = modelo;
+            document.getElementById('resumoChassi').textContent = chassi;
+            document.getElementById('resumoKmEntrada').textContent = kmEntrada;
+            document.getElementById('resumoData').textContent = data;
+            document.getElementById('resumoHora').textContent = hora;
+            document.getElementById('resumoCombustivel').textContent = combustivel;
 
-    const getValue = (id) => document.getElementById(id)?.value || '';
-    const getText = (id) => document.getElementById(id)?.innerText || '';
+            document.getElementById('resumoPlaca2').textContent = placa;
+            document.getElementById('resumoModelo2').textContent = modelo;
+            document.getElementById('resumoChassi2').textContent = chassi;
+            document.getElementById('resumoKmEntrada2').textContent = kmEntrada;
+            document.getElementById('resumoComplexidade').textContent = complexidade || '-';
+// FOTOS
+const resumoPlaca3 = document.getElementById('resumoPlaca3');
+const resumoModelo3 = document.getElementById('resumoModelo3');
+const resumoChassi3 = document.getElementById('resumoChassi3');
+const resumoKmFotos = document.getElementById('resumoKmFotos');
+if (resumoPlaca3) resumoPlaca3.textContent = placa;
+if (resumoModelo3) resumoModelo3.textContent = modelo;
+if (resumoChassi3) resumoChassi3.textContent = chassi;
+if (resumoKmFotos) resumoKmFotos.textContent = kmEntrada;
 
-    const dados = {
-        placa: getValue('placa').toUpperCase() || 'SEM-PLACA',
-        modelo: getValue('modelo') || 'Não informado',
-        chassi: getValue('chassi') || '',
-        km: getValue('km_entrada') || '',
-        data: getValue('data') || '',
-        hora: getValue('hora') || '',
-        cliente: getValue('nome_cliente') || '',
-        doc: getValue('cpf_cnpj') || '',
-        tel: getValue('celular_cliente') || '',
-        endereco: getValue('endereco_cliente') || '',
-        servicos_txt: getValue('servicos') || '',
-        oficina: getText('nome-oficina') || 'OFICINA',
-        sub: getText('subtitulo-oficina') || '',
-        tel_oficina: getText('telefone-oficina') || '',
-        end_oficina: getText('endereco-oficina') || ''
-    };
-
-    const itensChecklist = [];
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-        if (['equipamentos','caracteristicas','cambio','tracao'].includes(cb.name)) {
-            const label = document.querySelector(`label[for="${cb.id}"]`)?.innerText || cb.value;
-            itensChecklist.push(label);
         }
+// ========================================
+// FOTOS - 100% FUNCIONAL
+// ========================================
+let streamCamera = null;
+let fotosVeiculo = JSON.parse(localStorage.getItem('fotosVeiculo') || '[]');
+
+function iniciarCamera() {
+    const video = document.getElementById('cameraPreview');
+    const btnTirar = document.getElementById('btnTirarFoto');
+    const container = document.querySelector('.camera-container');
+    
+    navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    }).then(stream => {
+        streamCamera = stream;
+        video.srcObject = stream;
+        container.style.display = 'block';
+        btnTirar.style.display = 'inline-block';
+        video.play();
+    }).catch(err => {
+        alert('Erro câmera: ' + err.message + '\nUse "Galeria"');
     });
+}
 
-    let htmlChecklist = itensChecklist.length ? 
-        `<div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 10px; margin-bottom: 20px;">
-            ${itensChecklist.map(i => `<div style="background:#f0f0f0; padding:4px 8px; border-radius:4px; border:1px solid #ccc;">✅ ${i}</div>`).join('')}
-        </div>` : 
-        `<p style="font-size: 11px; color: #999; font-style: italic;">Nenhum item marcado.</p>`;
-
-    let logoSrc = '';
-    const imgElement = document.getElementById('logo-oficina');
-    if (imgElement && imgElement.src) logoSrc = await getBase64ImageFromUrl(imgElement.src) || imgElement.src;
-
-    let htmlItens = '';
-    let total = 0;
-    (typeof itensOrcamento !== 'undefined' ? itensOrcamento : []).forEach(item => {
-        htmlItens += `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 6px;">${item.descricao}</td>
-                <td style="padding: 6px; text-align: center;">${(item.tipo === 'peca' ? 'PEÇA' : 'SERV')}</td>
-                <td style="padding: 6px; text-align: right;">R$ ${parseFloat(item.valor).toFixed(2)}</td>
-            </tr>`;
-        total += parseFloat(item.valor);
-    });
-
-    if (!htmlItens) htmlItens = '<tr><td colspan="3" style="text-align:center; padding:10px; color:#999;">Nenhum item lançado.</td></tr>';
-
-    const conteudoPDF = `
-    <div id="folha-a4" style="font-family: Arial, sans-serif; background: #fff; width: 100%; box-sizing: border-box; padding: 40px; color: #333;">
-        <table style="width: 100%; border-bottom: 3px solid #cc0000; margin-bottom: 20px; padding-bottom: 10px;">
-            <tr>
-                <td style="width: 120px; vertical-align: middle;">${logoSrc ? `<img src="${logoSrc}" style="max-height: 80px; max-width: 100%;">` : ''}</td>
-                <td style="text-align: right; vertical-align: middle;">
-                    <h2 style="margin: 0; color: #cc0000; text-transform: uppercase; font-size: 20px;">${dados.oficina}</h2>
-                    <p style="margin: 2px 0; font-size: 11px; color: #666;">${dados.sub}</p>
-                    <p style="margin: 2px 0; font-size: 12px; font-weight: bold;">${dados.tel_oficina}</p>
-                    <p style="margin: 2px 0; font-size: 11px;">${dados.end_oficina}</p>
-                </td>
-            </tr>
-        </table>
-        <div style="background: #f4f4f4; padding: 10px; border-left: 6px solid #cc0000; display: flex; justify-content: space-between; margin-bottom: 20px;">
-            <strong style="font-size: 16px;">ORDEM DE SERVIÇO</strong>
-            <strong style="color: #cc0000; font-size: 18px;">${dados.placa}</strong>
-        </div>
-        <table style="width: 100%; margin-bottom: 20px; font-size: 12px;">
-            <tr>
-                <td style="width: 50%; vertical-align: top; padding-right: 20px;">
-                    <h3 style="margin:0 0 5px 0; color: #cc0000; border-bottom: 1px solid #ccc; font-size: 12px;">CLIENTE</h3>
-                    <div style="margin-bottom: 4px;"><strong>Nome:</strong> ${dados.cliente}</div>
-                    <div style="margin-bottom: 4px;"><strong>Doc:</strong> ${dados.doc}</div>
-                    <div style="margin-bottom: 4px;"><strong>Tel:</strong> ${dados.tel}</div>
-                </td>
-                <td style="width: 50%; vertical-align: top;">
-                    <h3 style="margin:0 0 5px 0; color: #cc0000; border-bottom: 1px solid #ccc; font-size: 12px;">VEÍCULO</h3>
-                    <div style="margin-bottom: 4px;"><strong>Modelo:</strong> ${dados.modelo}</div>
-                    <div style="margin-bottom: 4px;"><strong>KM:</strong> ${dados.km}</div>
-                    <div style="margin-bottom: 4px;"><strong>Entrada:</strong> ${dados.data} ${dados.hora}</div>
-                </td>
-            </tr>
-        </table>
-        <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 12px; background: #eee; padding: 5px; margin-bottom: 0;">SERVIÇOS SOLICITADOS</h3>
-            <div style="border: 1px solid #ddd; padding: 10px; font-size: 11px; min-height: 40px; border-radius: 4px;">${dados.servicos_txt || 'Nenhuma observação.'}</div>
-        </div>
-        <div>
-            <h3 style="font-size: 12px; background: #eee; padding: 5px; margin-bottom: 10px;">INSPEÇÃO DE ENTRADA</h3>
-            ${htmlChecklist}
-        </div>
-        <div style="margin-bottom: 30px;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                <thead>
-                    <tr style="background: #333; color: white;">
-                        <th style="padding: 8px; text-align: left;">DESCRIÇÃO</th>
-                        <th style="padding: 8px; text-align: center; width: 60px;">TIPO</th>
-                        <th style="padding: 8px; text-align: right; width: 100px;">VALOR</th>
-                    </tr>
-                </thead>
-                <tbody>${htmlItens}</tbody>
-                <tfoot>
-                    <tr style="background: #f9f9f9; font-weight: bold;">
-                        <td colspan="2" style="padding: 10px; text-align: right; border-top: 2px solid #ccc;">TOTAL:</td>
-                        <td style="padding: 10px; text-align: right; border-top: 2px solid #ccc; color: #28a745; font-size: 14px;">R$ ${total.toFixed(2)}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-        <div style="text-align: center; font-size: 10px; color: #999; margin-top: 50px; border-top: 1px solid #eee; padding-top: 10px;">Gerado em ${new Date().toLocaleString()}</div>
-    </div>`;
-
-    const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-        position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
-        background: 'rgba(50,50,50,1)', zIndex: '9999999', overflow: 'auto',
-        display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px'
-    });
-
-    const container = document.createElement('div');
-    container.innerHTML = conteudoPDF;
-    Object.assign(container.style, { width: '794px', minWidth: '794px', background: 'white', boxShadow: '0 0 15px rgba(0,0,0,0.5)' });
-
-    overlay.appendChild(container);
-    document.body.appendChild(overlay);
-
-    const msg = document.createElement('div');
-    msg.innerText = "⏳ BAIXANDO PDF...";
-    Object.assign(msg.style, {
-        position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
-        background: 'gold', padding: '10px 20px', fontWeight: 'bold', zIndex: '10000000', borderRadius: '5px'
-    });
-    document.body.appendChild(msg);
-
-    const opt = {
-        margin: 0,
-        filename: `OS_${dados.placa}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+function tirarFoto() {
+    const video = document.getElementById('cameraPreview');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    const foto = {
+        id: Date.now(),
+        dataURL: canvas.toDataURL('image/jpeg', 0.8),
+        data: new Date().toLocaleString('pt-BR')
     };
+    
+    fotosVeiculo.unshift(foto);
+    if (fotosVeiculo.length > 15) fotosVeiculo = fotosVeiculo.slice(0, 15);
+    localStorage.setItem('fotosVeiculo', JSON.stringify(fotosVeiculo));
+    renderizarGaleria();
+    pararCamera();
+}
 
-    try {
-        await new Promise(r => setTimeout(r, 1000));
-        await html2pdf().set(opt).from(container).save();
-    } catch (e) {
-        alert('Erro: ' + e.message);
-    } finally {
-        document.body.removeChild(overlay);
-        document.body.removeChild(msg);
+function pararCamera() {
+    if (streamCamera) {
+        streamCamera.getTracks().forEach(track => track.stop());
+        streamCamera = null;
     }
-};
-
-// --- IMPORTANTE: GARANTE QUE O BOTÃO ANTIGO FUNCIONE ---
-window.gerarPDF = window.emitirOS;
-function gerarPDF() {
-  const elemento = document.querySelector('.container');
-  const opt = {
-    margin: 10,
-    filename: 'checklist.pdf',
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(elemento).save();
-}
- document.getElementById('resumoCombustivel').textContent = combustivel;
-  document.getElementById('resumoComplexidade').textContent = complexidade;
+    document.querySelector('.camera-container').style.display = 'none';
+    document.getElementById('btnTirarFoto').style.display = 'none';
 }
 
-</script>
-
-<script>
-// 🔧 FUNÇÕES BÁSICAS - FUNCIONAM 100%
-function switchTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+function adicionarFotos(event) {
+    const files = Array.from(event.target.files);
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            fotosVeiculo.unshift({
+                id: Date.now() + Math.random(),
+                dataURL: e.target.result,
+                data: new Date().toLocaleString('pt-BR')
+            });
+            if (fotosVeiculo.length > 15) fotosVeiculo = fotosVeiculo.slice(0, 15);
+            localStorage.setItem('fotosVeiculo', JSON.stringify(fotosVeiculo));
+            renderizarGaleria();
+        };
+        reader.readAsDataURL(file);
+    });
+    event.target.value = '';
 }
 
-function salvarChecklist() {
-  const dados = {};
-  document.querySelectorAll('input, select, textarea').forEach(el => {
-    if (!el.name && !el.id) return;
-    const chave = el.name || el.id;
-    if (el.type === 'checkbox') dados[chave] = el.checked;
-    else if (el.type === 'radio' && el.checked) dados[chave] = el.value;
-    else dados[chave] = el.value;
-  });
-  localStorage.setItem('checklistSalvo', JSON.stringify(dados));
-  alert('✅ SALVO!');
-}
-
-function gerarPDF() {
-  const elemento = document.querySelector('.container');
-  const opt = {
-    margin: 10,
-    filename: 'checklist.pdf',
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(elemento).save();
-}
-
-function limparFormulario() {
-  if (confirm('Limpar tudo?')) {
-    document.getElementById('checklistForm').reset();
-    alert('🧹 Limpou!');
-  }
-}
-
-// INICIALIZA
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('✅ JS CARREGADO!');
-});
-<script>
-function gerarPDF() {
-    // Pega placa primeiro (obrigatório)
-    const placaEl = document.getElementById('placa');
-    if (!placaEl || !placaEl.value) {
-        alert('❌ Preencha a PLACA primeiro!');
-        placaEl?.focus();
+function renderizarGaleria() {
+    const galeria = document.getElementById('galeriaFotos');
+    if (!galeria) return;
+    galeria.innerHTML = '';
+    
+    if (fotosVeiculo.length === 0) {
+        galeria.innerHTML = '<p style="text-align:center;color:#999;padding:40px">📭 Nenhuma foto</p>';
         return;
     }
     
-    const elemento = document.getElementById('novo-checklist');
-    html2pdf()
-        .set({
-            filename: `Checklist_${placaEl.value.toUpperCase()}.pdf`,
-            margin: [15, 10, 10, 10],
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            html2canvas: { scale: 2, useCORS: true, logging: false }
-        })
-        .from(elemento)
-        .save()
-        .then(() => alert('✅ PDF baixado!'))
-        .catch(err => console.error(err));
-}
-
-// Botão Salvar (você tem no histórico)
-function salvarChecklist() {
-    const dados = {};
-    document.querySelectorAll('input[name], select[name], textarea[name]').forEach(el => {
-        if (el.type === 'checkbox') dados[el.name] = el.checked;
-        else if (el.type === 'radio' && el.checked) dados[el.name] = el.value;
-        else dados[el.name] = el.value;
+    fotosVeiculo.slice(0, 15).forEach((foto, index) => {
+        const div = document.createElement('div');
+        div.className = 'foto-item';
+        div.innerHTML = `
+            <img src="${foto.dataURL}" alt="Foto ${index + 1}" loading="lazy">
+            <div class="foto-overlay"><span style="color:white;font-size:11px">${foto.data}</span></div>
+            <div class="foto-actions">
+                <button class="btn-foto btn-warning foto-zoom" data-url="${foto.dataURL}">🔍</button>
+                <button class="btn-foto btn-danger foto-delete" data-id="${foto.id}">🗑️</button>
+            </div>
+        `;
+        galeria.appendChild(div);
     });
-    localStorage.setItem('checklistSalvo', JSON.stringify(dados));
-    alert('💾 SALVO!');
+    
+    // EVENTOS DELEGADOS
+    galeria.querySelectorAll('.foto-zoom').forEach(btn => {
+        btn.addEventListener('click', () => abrirFotoGrande(btn.dataset.url));
+    });
+    galeria.querySelectorAll('.foto-delete').forEach(btn => {
+        btn.addEventListener('click', () => removerFoto(parseInt(btn.dataset.id)));
+    });
 }
-</script>
 
+function removerFoto(id) {
+    fotosVeiculo = fotosVeiculo.filter(f => f.id !== id);
+    localStorage.setItem('fotosVeiculo', JSON.stringify(fotosVeiculo));
+    renderizarGaleria();
+    mostrarAlerta('success', '✅ Foto removida!');
+}
+
+function limparFotos() {
+    if (confirm('🗑️ Limpar TODAS as fotos?')) {
+        fotosVeiculo = [];
+        localStorage.removeItem('fotosVeiculo');
+        renderizarGaleria();
+        mostrarAlerta('success', '✅ Fotos limpas!');
+    }
+}
+
+function abrirFotoGrande(dataURL) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position:fixed; top:0; left:0; width:100vw; height:100vh; 
+        background:rgba(0,0,0,0.95); z-index:9999; display:flex; 
+        align-items:center; justify-content:center; padding:20px;
+    `;
+    modal.innerHTML = `
+        <img src="${dataURL}" style="max-width:95%; max-height:95%; border-radius:8px; box-shadow:0 0 50px rgba(255,255,255,0.3);">
+        <button onclick="this.parentElement.remove()" style="
+            position:absolute; top:20px; right:20px; background:#e41616; 
+            color:white; border:none; border-radius:50%; width:50px; 
+            height:50px; font-size:20px; cursor:pointer;
+        ">✕</button>
+    `;
+    document.body.appendChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+}
+
+function gerarPDFFotos() {
+    if (!fotosVeiculo || fotosVeiculo.length === 0) {
+        alert('📭 Sem fotos para gerar PDF');
+        return;
+    }
+
+    const placa  = document.getElementById('placa')?.value  || 'SEM_PLACA';
+    const modelo = document.getElementById('modelo')?.value || 'SEM_MODELO';
+    const chassi = document.getElementById('chassi')?.value || 'SEM_CHASSI';
+
+    const MAXFOTOS = 16;
+    const fotosUsar = fotosVeiculo.slice(0, MAXFOTOS);
+
+    let html = '';
+
+    // Cada grupo de 4 fotos = 1 página (2x2)
+    for (let i = 0; i < fotosUsar.length; i += 4) {
+        const isLastGroup = i + 4 >= fotosUsar.length;
+
+        html += `
+            <div style="
+                width: 100%;
+                min-height: 100vh;
+                box-sizing: border-box;
+                padding: 20px;
+                font-family: Arial, sans-serif;
+                ${isLastGroup ? '' : 'page-break-after: always;'}
+            ">
+                <!-- CABEÇALHO COM DADOS DO CARRO -->
+                <div style="
+                    background: #f5f5f5;
+                    border: 2px solid #e41616;
+                    border-radius: 6px;
+                    padding: 10px 15px;
+                    margin-bottom: 15px;
+                    font-size: 11px;
+                    line-height: 1.5;
+                ">
+                    <div style="font-weight: bold; color: #e41616; font-size: 12px; margin-bottom: 5px;">- INSPEÇÃO DE FOTOS</div>
+                    <div><strong>Placa:</strong> ${placa}</div>
+                    <div><strong>Modelo:</strong> ${modelo}</div>
+                    <div><strong>Chassi:</strong> ${chassi}</div>
+                </div>
+
+                <!-- GRADE DE 4 FOTOS 2x2 -->
+                <div style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                ">
+        `;
+
+        for (let j = 0; j < 4 && (i + j) < fotosUsar.length; j++) {
+            const foto = fotosUsar[i + j];
+            const num = i + j + 1;
+
+            html += `
+                <div style="text-align: center;">
+                    <img src="${foto.dataURL}"
+                         style="
+                             width: 100%;
+                             max-width: 260px;
+                             max-height: 260px;
+                             height: auto;
+                             border-radius: 6px;
+                             border: 1px solid #e41616;
+                         ">
+                    <div style="
+                        font-size: 9px;
+                        margin-top: 5px;
+                        color: #555;
+                    ">
+                        Foto ${num} - ${foto.data || ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+    }
+
+    html2pdf().set({
+        filename: `Fotos-${placa}.pdf`,
+        margin: 0,
+        image: { type: 'jpeg', quality: 0.9 },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            scrollY: 0
+        },
+        jsPDF: {
+            format: 'a4',
+            orientation: 'portrait',
+            unit: 'pt'
+        }
+    }).from(html).save();
+
+    mostrarAlerta('success', `✅ PDF gerado com ${fotosUsar.length} fotos (máximo 16)`);
+}
+
+// INICIALIZAR FOTOS
+document.addEventListener('DOMContentLoaded', () => {
+    renderizarGaleria();
+});
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript;base64,CmNvbnN0IENBQ0hFX05BTUUgPSAnY2hlY2tsaXN0LXYzLWNhY2hlJzsKY29uc3QgVVJMU19UT19DQUNIRSA9IFsKICAnLycsCiAgJy9pbmRleC5odG1sJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgKGV2ZW50KSA9PiB7CiAgY29uc3QgY2FjaGVPcGVuID0gY2FjaGVzLm9wZW4oQ0FDSEVfTkFNRSkudGhlbigY2xpZW50KSA9PiB7CiAgICByZXR1cm4gY2xpZW50LmFkZEFsbChVUkxzX1RPX0NBQ0hFKTsKICB9KTsKICBldmVudC53YWl0VW50aWwoKGNhY2hlT3Blbik7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIChldmVudCkgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpLnRoZW4oKHJlc3BvbnNlKSA9PiB7CiAgICAgIGlmIChyZXNwb25zZSkgewogICAgICAgIHJldHVybiByZXNwb25zZTsKICAgICAgfQogICAgICByZXR1cm4gZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICB9KQogICk7Cn0pOwo=');
+        }
+    </script>
+<button id="btnSalvarChecklist" onclick="salvarChecklist()">
+    💾 Salvar Checklist
+</button>
+<script src="config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
-
-
-
-
-
