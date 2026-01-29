@@ -657,10 +657,18 @@ function salvarChecklist() {
                 data_criacao: new Date().toISOString(),
                 ...formData
             };
+            
+// ✅ SALVA PEÇAS E SERVIÇOS
+formData.itensOrcamento = itensOrcamento || [];
+formData.complexidade = document.getElementById('complexidade')?.value || '';
 
             let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
             checklists.push(checklist);
             localStorage.setItem('checklists', JSON.stringify(checklists));
+
+             // ✅ LIMPA PEÇAS/SERVIÇOS após salvar
+    itensOrcamento = [];
+    renderizarTabela();
 
             alert("✅ Checklist salvo com sucesso no Histórico!");
             document.getElementById('checklistForm').reset();
@@ -747,7 +755,11 @@ function salvarChecklist() {
     if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
     if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
     if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
-
+         // ✅ CARREGA PEÇAS/SERVIÇOS
+    itensOrcamento = item.itensOrcamento || [];
+    document.getElementById('complexidade').value = item.complexidade || '';
+    renderizarTabela();
+    
     atualizarResumoVeiculo();
 }
 
@@ -1011,13 +1023,16 @@ function renderizarTabela() {
 
     itensOrcamento.forEach(item => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="border:1px solid #ddd; padding:6px;">${item.descricao}</td>
-          <td style="border:1px solid #ddd; padding:6px; text-align:right;">R$ ${item.valor.toFixed(2)}</td>
-          <td style="border:1px solid #ddd; padding:6px; text-align:center;">
-            <button class="btn-small btn-danger" onclick="removerItem(${item.id})">🗑️</button>
-          </td>
-        `;
+        
+       tr.innerHTML = `
+    <td style="border:1px solid #ddd; padding:6px;">${item.descricao}</td>
+    <td style="border:1px solid #ddd; padding:6px; text-align:right;">R$ ${item.valor.toFixed(2)}</td>
+    <td style="border:1px solid #ddd; padding:6px; text-align:center;">
+        <button class="btn-small btn-warning" onclick="editarItem(${item.id})" title="Editar">✏️</button>
+        <button class="btn-small btn-danger" onclick="removerItem(${item.id})" title="Apagar">🗑️</button>
+    </td>
+`;
+
 
         if (item.tipo === 'servico') {
             somaServicos += item.valor;
@@ -1529,6 +1544,21 @@ function gerarPDFResumo() {
     }, 300);
 }
 
+        function editarItem(id) {
+    const item = itensOrcamento.find(i => i.id === id);
+    if (!item) return;
+    
+    // Preenche os campos pra editar
+    document.getElementById('descricaoItem').value = item.descricao;
+    document.getElementById('valorItem').value = item.valor;
+    document.querySelector(`input[name="tipoItem"][value="${item.tipo}"]`).checked = true;
+    
+    // Remove o antigo (vai adicionar novo clicando "Adicionar")
+    removerItem(id);
+    
+    alert('Item carregado para edição. Altere e clique ➕ Adicionar!');
+}
+
 
     </script>
 <button id="btnSalvarChecklist" onclick="salvarChecklist()">
@@ -1539,6 +1569,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
