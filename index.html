@@ -696,41 +696,44 @@ function salvarChecklist() {
             });
         }
 
-        function carregarChecklist(id) {
-            const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-            const item = checklists.find(c => c.id === id);
+       function carregarChecklist(id) {
+    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+    const item = checklists.find(c => c.id === id);
 
-            if (item) {
-                switchTab('novo-checklist');
+    if (item) {
+        switchTab('novo-checklist');
 
-                // Mapeamento de nomes antigos -> novos para corrigir o bug
-                const mapa = {
-                    'nome_cliente': 'nomecliente',
-                    'cpf_cnpj': 'cpfcnpj',
-                    'telefone': 'celularcliente',
-                    'contato': 'celularcliente'
-                };
-
-                for (const key in item) {
-                    // Usa o nome mapeado ou o original
-                    let nomeCampo = mapa[key] || key;
-                    
-                    const el = document.getElementsByName(nomeCampo)[0];
-                    if (el && el.type !== 'checkbox' && el.type !== 'file') {
-                        el.value = item[key];
-                    }
-                }
-
-                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-
-                if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
-                if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
-                if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
-                if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
-
-                atualizarResumoVeiculo();
+        // 1. Tenta preencher tudo de forma genérica (para campos novos)
+        for (const key in item) {
+            const el = document.getElementsByName(key)[0];
+            if (el && el.type !== 'checkbox' && el.type !== 'file' && el.type !== 'radio') {
+                el.value = item[key];
             }
         }
+
+        // 2. FORÇA BRUTA: Preenche manualmente os campos antigos que estão falhando
+        // Se existir 'nome_cliente' no banco, joga no campo 'nomecliente'
+        if (item.nome_cliente) document.getElementById('nomecliente').value = item.nome_cliente;
+        if (item.cpf_cnpj)     document.getElementById('cpfcnpj').value = item.cpf_cnpj;
+        if (item.telefone)     document.getElementById('celularcliente').value = item.telefone;
+        if (item.contato)      document.getElementById('celularcliente').value = item.contato;
+        
+        // Garante que placa e modelo também venham (caso tenham nomes diferentes)
+        if (item.placa)  document.getElementById('placa').value = item.placa;
+        if (item.modelo) document.getElementById('modelo').value = item.modelo;
+
+        // 3. Limpa e marca os checkboxes
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+        if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
+        if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
+        if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
+        if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
+
+        // 4. Atualiza o resumo visual imediatamente
+        setTimeout(atualizarResumoVeiculo, 100);
+    }
+}
 
 
         function marcarCheckbox(name, value) {
@@ -1502,6 +1505,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
