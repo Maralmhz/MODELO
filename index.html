@@ -1388,9 +1388,11 @@ function atualizarResumoOS() {
     document.getElementById('osNumero').textContent = gerarNumeroOS();
 
     // Cliente
-    document.getElementById('rNomeCliente').textContent = document.getElementById('nomecliente')?.value || '-';
-    document.getElementById('rCpfCnpj').textContent = document.getElementById('cpfcnpj')?.value || '-';
-    document.getElementById('rCelular').textContent = document.getElementById('celularcliente')?.value || '-';
+    
+document.getElementById('rNomeCliente').textContent = document.getElementById('nomecliente')?.value || '-';
+document.getElementById('rCpfCnpj').textContent = document.getElementById('cpfcnpj')?.value || '-';
+document.getElementById('rCelular').textContent = document.getElementById('celularcliente')?.value || '-';
+
 
     // Veículo
     document.getElementById('rModelo').textContent = document.getElementById('modelo')?.value || '-';
@@ -1523,6 +1525,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
