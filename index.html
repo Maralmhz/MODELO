@@ -1500,29 +1500,57 @@ function imprimirResumo() {
 }
 
 function gerarPDFResumo() {
-    const elemento = document.getElementById('resumoContainer');
+    // Força o update do resumo primeiro
+    atualizarResumoOS();
     
-    // Esconde botões
-    document.querySelectorAll('button, .tabs, .header-badge, .action-buttons').forEach(el => {
-        el.style.display = 'none';
-    });
+    // Pequeno delay para renderizar tudo
+    setTimeout(() => {
+        const elemento = document.getElementById('resumoContainer');
+        
+        // Esconde TODOS os botões e tabs temporariamente
+        const elementosOcultar = document.querySelectorAll('button, .tabs, .header-badge, .action-buttons, .veiculo-resumo, .form-row');
+        elementosOcultar.forEach(el => el.style.display = 'none');
+        
+        // Mostra só o papel
+        elemento.style.display = 'block';
+        elemento.style.width = '100%';
+        elemento.style.margin = '0 auto';
+        
+        const opt = {
+            margin: [10, 15, 10, 15],
+            filename: 'OS-' + (document.getElementById('placa')?.value?.toUpperCase() || 'SEMPLACA') + '.pdf',
+            image: { type: 'jpeg', quality: 0.90 },
+            html2canvas: { 
+                scale: 1.2, 
+                useCORS: true,
+                width: 794,  // Largura A4 em pixels (595pt * 1.333)
+                height: 1122 // Altura A4 em pixels (842pt * 1.333)
+            },
+            jsPDF: { 
+                unit: 'pt', 
+                format: 'a4', 
+                orientation: 'portrait' 
+            }
+        };
 
-  const opt = {
-    margin: [15, 20, 15, 20],     // ← MARGENS MAIORES (top, right, bottom, left)
-    filename: 'OS-' + (document.getElementById('placa')?.value || 'SEMPLACA') + '.pdf',
-    image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 1.5, useCORS: true },  // ← SCALE MENOR
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-};
-
-
-    html2pdf().set(opt).from(elemento).save().then(() => {
-        document.querySelectorAll('button, .tabs, .header-badge, .action-buttons').forEach(el => {
-            el.style.display = '';
-        });
-    });
+        html2pdf()
+            .set(opt)
+            .from(elemento)
+            .save()
+            .then(() => {
+                // Restaura tudo
+                elementosOcultar.forEach(el => el.style.display = '');
+                elemento.style.width = '';
+                elemento.style.margin = '';
+                console.log('✅ PDF gerado com sucesso!');
+            })
+            .catch(err => {
+                console.error('❌ Erro PDF:', err);
+                alert('Erro PDF. Use IMPRIMIR.');
+                elementosOcultar.forEach(el => el.style.display = '');
+            });
+    }, 500); // 0.5s delay para renderizar
 }
-
 
     </script>
 <button id="btnSalvarChecklist" onclick="salvarChecklist()">
