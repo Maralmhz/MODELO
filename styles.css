@@ -701,9 +701,21 @@ button {
     .tabs,
     .action-buttons,
     .header-badge,
-    #btnSalvarChecklist {
+    #btnSalvarChecklist,
+    button {
         display: none !important;
     }
+    
+    /* ✅ ISSO REMOVE CABEÇALHO DO NAVEGADOR */
+    @page {
+        margin: 1cm;
+        size: A4;
+        margin-top: 0.5cm;
+        margin-bottom: 1cm;
+        @top-center { content: none; }
+        @bottom-center { content: none; }
+    }
+    
     .header {
         padding: 15px;
     }
@@ -712,8 +724,6 @@ button {
         border-top: 3px solid var(--color-primary);
         padding-top: 20px;
     }
-    
-    /* ESSAS LINHAS RESOLVEM O CORTE NO IPHONE */
     tr, td, th {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
@@ -722,6 +732,7 @@ button {
         page-break-inside: auto;
     }
 }
+
 
 .hidden {
     display: none !important;
@@ -974,6 +985,7 @@ button {
 
 
 </style>
+
 
 
 
