@@ -921,40 +921,6 @@ button {
 /* Utilitários */
 .mt-10 { margin-top: 15px; }
 
-/* CONFIGURAÇÃO DE IMPRESSÃO (O SEGREDO!) */
-@media print {
-    body * {
-        visibility: hidden; /* Esconde tudo */
-    }
-    
-    /* Mostra só a aba Resumo */
-    #resumo, #resumo * {
-        visibility: visible;
-    }
-
-    #resumo {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        background: white;
-    }
-
-    /* Esconde botões na impressão */
-    .action-buttons, .tabs, .header {
-        display: none !important;
-    }
-
-    .os-paper {
-        box-shadow: none;
-        border: none;
-        padding: 0;
-        max-width: 100%;
-    }
-}
-
 /* === PDF EXPORT FIX - CORRIGE ESPAÇAMENTO === */
 @media print, screen {
     #resumoContainer {
@@ -993,22 +959,22 @@ button {
     }
 }
 
-/* IMPRIMIR PERFEITO */
-@media print {
-    body * { visibility: hidden; }
-    #resumo, #resumo * { visibility: visible; }
-    #resumo { 
-        position: absolute; 
-        left: 0; 
-        top: 0; 
-        width: 100%; 
-        margin: 0 !important;
-        padding: 10mm !important;
-    }
+/* ===== CONTAINER REAL DO PDF ===== */
+#pdfResumo {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 10mm;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+#pdfResumo * {
+    box-sizing: border-box;
 }
 
 
 </style>
+
 
 
 
