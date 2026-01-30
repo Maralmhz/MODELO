@@ -1522,18 +1522,33 @@ function gerarPDFResumo() {
     atualizarResumoOS();
     
     setTimeout(() => {
-        // ESCONDE TUDO MENOS O PAPEL
-        document.body.innerHTML = document.getElementById('resumoContainer').outerHTML;
+        // ESCONDE TUDO MENOS O PAPEL + APLICA ESTILOS DIRETOS
+        const papelHTML = document.getElementById('resumoContainer').outerHTML;
+        document.body.innerHTML = papelHTML;
+        
+        // FORÇA ESTILOS no corpo do PDF
+        document.body.style.margin = '0';
+        document.body.style.padding = '12mm';
+        document.body.style.background = 'white';
+        document.body.style.fontFamily = 'Segoe UI, Arial, sans-serif';
+        
+        // Logo pequeno
+        const logo = document.querySelector('.os-logo');
+        if (logo) {
+            logo.style.maxWidth = '45px';
+            logo.style.maxHeight = '45px';
+        }
         
         const opt = {
-            margin: [0, 0, 0, 0],
+            margin: [10, 10, 10, 10],  // 10mm margens perfeitas
             filename: 'OS-' + (document.getElementById('placa')?.value?.toUpperCase() || 'CHECKLIST') + '.pdf',
-            image: { type: 'jpeg', quality: 0.92 },
+            image: { type: 'jpeg', quality: 0.95 },
             html2canvas: { 
-                scale: 1, 
+                scale: 1.3,  // Equilíbrio tamanho/qualidade
                 useCORS: true,
                 allowTaint: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                letterRendering: true
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
@@ -1543,9 +1558,9 @@ function gerarPDFResumo() {
             .from(document.body)
             .save()
             .then(() => {
-                location.reload(); // Recarrega a página
+                location.reload(); // Volta normal
             });
-    }, 300);
+    }, 200);  // Tempo menor
 }
 
         function editarItem(id) {
@@ -1580,6 +1595,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
