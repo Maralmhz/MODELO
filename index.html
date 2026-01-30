@@ -855,17 +855,27 @@ checklist.itensOrcamento = itensOrcamento || [];
             botoes.forEach(btn => btn.style.display = 'none');
 
             const opt = {
-                margin:       [0, 0, 0, 0],
-                filename:     'Checklist-' + document.getElementById('placa').value + '.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  {
-                    scale: 2,
-                    useCORS: true,
-                    scrollY: 0,
-windowWidth: document.documentElement.offsetWidth
-},
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+    margin: [10, 15, 10, 15],  // ✅ MARGEM adequada
+    filename: 'Checklist-' + document.getElementById('placa').value + '.pdf',
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: {
+        scale: 1.5,  // ✅ Reduzido para mais conteúdo por página
+        useCORS: true,
+        letterRendering: true,  // ✅ Melhora texto
+        allowTaint: true,
+        width: 794,  // ✅ Largura A4 em pixels (595pt * scale)
+        height: 1123 // ✅ Altura A4 em pixels
+    },
+    jsPDF: { 
+        unit: 'pt', 
+        format: 'a4', 
+        orientation: 'portrait' 
+    },
+    pagebreak: {  // ✅ QUEBRA AUTOMÁTICA
+        mode: ['avoid-all', 'css', 'legacy']
+    }
+};
+
 
             html2pdf().set(opt).from(elemento).save().then(() => {
                 botoes.forEach(btn => btn.style.display = '');
@@ -1595,6 +1605,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
