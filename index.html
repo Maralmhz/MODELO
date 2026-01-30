@@ -137,6 +137,7 @@
 <div class="equip-section">
     <div class="equip-section-title">⛽ TIPO COMBUSTÍVEL</div>
     <div class="checkbox-group">
+        <div class="checkbox-item"><input type="checkbox" id="flex" name="equipamentos" value="FLEX"><label for="flex">FLEX</label></div>
         <div class="checkbox-item"><input type="checkbox" id="gasolina" name="equipamentos" value="GASOLINA"><label for="gasolina">GASOLINA</label></div>
         <div class="checkbox-item"><input type="checkbox" id="etanol" name="equipamentos" value="ETANOL"><label for="etanol">ETANOL</label></div>
         <div class="checkbox-item"><input type="checkbox" id="gnv" name="equipamentos" value="GNV"><label for="gnv">GNV</label></div>
@@ -172,7 +173,7 @@
                             <div class="checkbox-item"><input type="checkbox" id="calotas" name="equipamentos" value="CALOTAS"><label for="calotas">CALOTAS</label></div>
                             <div class="checkbox-item"><input type="checkbox" id="rodas_liga" name="equipamentos" value="RODAS DE LIGA"><label for="rodas_liga">RODAS DE LIGA</label></div>
                             <div class="checkbox-item"><input type="checkbox" id="roda_ferro" name="equipamentos" value="RODA DE FERRO"><label for="roda_ferro">RODA DE FERRO</label></div>
-                            <div class="checkbox-item"><input type="checkbox" id="para_brisa" name="equipamentos" value="PARABRISA TRINCADO"><label for="para_brisa">PÁRA BRISA TRICADO</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="para_brisa" name="equipamentos" value="PARABRISA TRINCADO"><label for="para_brisa">PÁRA BRISA TRINCADO</label></div>
                         </div>
                     </div>
 
@@ -196,22 +197,24 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Câmbio</label>
-                            <div class="checkbox-group" style="margin-top: 5px;">
-                                <div class="checkbox-item"><input type="checkbox" id="cambio_auto" name="cambio" value="Automático"><label for="cambio_auto">Automático</label></div>
-                                <div class="checkbox-item"><input type="checkbox" id="cambio_manual" name="cambio" value="Manual"><label for="cambio_manual">Manual</label></div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Tração</label>
-                            <div class="checkbox-group" style="margin-top: 5px;">
-                                <div class="checkbox-item"><input type="checkbox" id="tracao_4x2" name="tracao" value="4x2"><label for="tracao_4x2">4x2</label></div>
-                                <div class="checkbox-item"><input type="checkbox" id="tracao_4x4" name="tracao" value="4x4"><label for="tracao_4x4">4x4</label></div>
-                            </div>
-                        </div>
-                    </div>
+<!-- NOVA VERSÃO DE CÂMBIO E TRAÇÃO (COM ESTILO BONITO) -->
+<div class="form-row">
+    <div class="equip-section" style="flex: 1; margin-top: 0;">
+        <div class="equip-section-title">🕹️ CÂMBIO</div>
+        <div class="checkbox-group">
+            <div class="checkbox-item"><input type="checkbox" id="cambio_auto" name="cambio" value="Automático"><label for="cambio_auto">AUTOMÁTICO</label></div>
+            <div class="checkbox-item"><input type="checkbox" id="cambio_manual" name="cambio" value="Manual"><label for="cambio_manual">MANUAL</label></div>
+        </div>
+    </div>
+
+    <div class="equip-section" style="flex: 1; margin-top: 0;">
+        <div class="equip-section-title">🚜 TRAÇÃO</div>
+        <div class="checkbox-group">
+            <div class="checkbox-item"><input type="checkbox" id="tracao_4x2" name="tracao" value="4x2"><label for="tracao_4x2">4x2</label></div>
+            <div class="checkbox-item"><input type="checkbox" id="tracao_4x4" name="tracao" value="4x4"><label for="tracao_4x4">4x4</label></div>
+        </div>
+    </div>
+</div>
 
                     <div class="section-title">👤 DADOS DO CLIENTE</div>
 
@@ -254,7 +257,7 @@
                     </div>
 
                     <div class="action-buttons">
-                        <button type="button" class="btn-success" onclick="gerarPDF()">📄 Gerar PDF</button>
+<button type="button" class="btn-success" onclick="switchTab('resumo'); atualizarResumoOS()">📄 Ver Resumo & Imprimir</button>
                         <button type="button" class="btn-secondary" onclick="limparFormulario()">🗑️ Limpar</button>
                     </div>
                 </form>
@@ -416,7 +419,7 @@
 
 </div>
                 <div class="action-buttons">
-                    <button type="button" class="btn-success" onclick="gerarPDF()">📄 Gerar PDF</button>
+<button type="button" class="btn-success" onclick="switchTab('resumo'); atualizarResumoOS()">📄 Ver Resumo & Imprimir</button>
                 </div>
             </div>
         </div>
@@ -1592,33 +1595,6 @@ function gerarPDFResumo() {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
