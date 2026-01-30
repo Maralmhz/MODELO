@@ -955,8 +955,61 @@ button {
     }
 }
 
+/* === PDF EXPORT FIX - CORRIGE ESPAÇAMENTO === */
+@media print, screen {
+    #resumoContainer {
+        margin: 0 !important;
+        padding: 10mm !important;
+        background: white !important;
+    }
+    
+    .os-paper {
+        margin: 0 !important;
+        padding: 8mm !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+    }
+    
+    .os-header {
+        margin-bottom: 8px !important;
+        padding-bottom: 8px !important;
+    }
+    
+    .os-logo {
+        max-width: 50px !important;
+        max-height: 50px !important;
+    }
+    
+    .os-header-right {
+        margin-top: -5px !important;
+    }
+    
+    .os-grid-2 {
+        gap: 12px !important;
+    }
+    
+    .os-box {
+        padding: 8px !important;
+    }
+}
+
+/* IMPRIMIR PERFEITO */
+@media print {
+    body * { visibility: hidden; }
+    #resumo, #resumo * { visibility: visible; }
+    #resumo { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        margin: 0 !important;
+        padding: 10mm !important;
+    }
+}
+
 
 </style>
+
 
 
 
