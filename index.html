@@ -627,6 +627,8 @@ function salvarChecklist() {
             if (tabId === 'relatorios') atualizarRelatorios();
             if (tabId === 'orcamento') atualizarResumoVeiculo(); // garante resumo atualizado ao abrir Peças
         }
+
+        let itensOrcamento = [];
          
         function salvarChecklist() {
             const placa = document.getElementById('placa').value;
@@ -662,6 +664,8 @@ function salvarChecklist() {
 formData.itensOrcamento = itensOrcamento || [];
 formData.complexidade = document.getElementById('complexidade')?.value || '';
 
+checklist.itensOrcamento = itensOrcamento || [];
+            
             let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
             checklists.push(checklist);
             localStorage.setItem('checklists', JSON.stringify(checklists));
@@ -761,6 +765,7 @@ formData.complexidade = document.getElementById('complexidade')?.value || '';
     renderizarTabela();
     
     atualizarResumoVeiculo();
+     itensOrcamento = item.itensOrcamento || [];
 }
 
 
@@ -1559,6 +1564,14 @@ function gerarPDFResumo() {
     alert('Item carregado para edição. Altere e clique ➕ Adicionar!');
 }
 
+        function editarItem(id) {
+    const item = itensOrcamento.find(i => i.id === id);
+    document.getElementById('descricaoItem').value = item.descricao;
+    document.getElementById('valorItem').value = item.valor;
+    document.querySelector(`input[name="tipoItem"][value="${item.tipo}"]`).checked = true;
+    removerItem(id);
+}
+
 
     </script>
 <button id="btnSalvarChecklist" onclick="salvarChecklist()">
@@ -1569,6 +1582,7 @@ function gerarPDFResumo() {
 
 </body>
 </html>
+
 
 
 
