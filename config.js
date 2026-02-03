@@ -9,6 +9,7 @@ window.OFICINA_CONFIG = {
     nome: "OFICINA",                                    // Nome principal
     subtitulo: "CHECKLIST DE ENTRADA E INSPEÇÃO",       // Subtítulo header
     cnpj: "00.000.000/0000-00",                         // CNPJ
+    oficinaId: "oficina_demo",                          // ID da oficina no Firebase (ex: oficina_do_joao)
 
     // === CONTATOS ===
     telefone: "(00) 00000-0000",                        // Telefone fixo
