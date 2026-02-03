@@ -1,27 +1,50 @@
-:root {
-    /* -- MUDANÇA PRINCIPAL -- */
-    /* Substitui o tom "sujo" por um Cinza Escuro Profundo (quase preto) */
-    /* Isso fará as barras de título e botões principais combinarem com o fundo da logo */
-    --color-primary: #1F2937; 
-
-    /* Fundo levemente cinza-gelo para tirar o aspecto de "site antigo" do branco puro */
-    --color-light: #F9FAFB;
-    
-    /* Preto real para elementos de destaque */
-    --color-dark: #111827;
-    
-    /* Texto cinza escuro para leitura confortável */
-    --color-text: #374151;
-    
-    /* Bordas mais suaves */
-    --color-border: #E5E7EB;
-    
-    /* -- CORES DE AÇÃO -- */
-    /* AMARELO VIBRANTE (Ajustado para combinar com a logo) */
-    /* Use esta cor para botões de ação ou ícones de alerta */
-    --color-warning: #FFD700; 
-    
-    /* Cores de feedback mais modernas (menos saturadas) */
-    --color-success: #10B981; /* Verde Esmeralda */
-    --color-error: #EF4444;   /* Vermelho Vivo */
-}
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/theme.css b/theme.css
+index 9fe191b787c497a60f7c76d09d62ccda5b5f0c4b..81bd29a390a1a6665c5fb9f516030376c44deda1 100644
+--- a/theme.css
++++ b/theme.css
+@@ -1,27 +1,14 @@
+-:root {
+-    /* -- MUDANÇA PRINCIPAL -- */
+-    /* Substitui o tom "sujo" por um Cinza Escuro Profundo (quase preto) */
+-    /* Isso fará as barras de título e botões principais combinarem com o fundo da logo */
+-    --color-primary: #1F2937; 
+-
+-    /* Fundo levemente cinza-gelo para tirar o aspecto de "site antigo" do branco puro */
+-    --color-light: #F9FAFB;
+-    
+-    /* Preto real para elementos de destaque */
+-    --color-dark: #111827;
+-    
+-    /* Texto cinza escuro para leitura confortável */
+-    --color-text: #374151;
+-    
+-    /* Bordas mais suaves */
+-    --color-border: #E5E7EB;
+-    
+-    /* -- CORES DE AÇÃO -- */
+-    /* AMARELO VIBRANTE (Ajustado para combinar com a logo) */
+-    /* Use esta cor para botões de ação ou ícones de alerta */
+-    --color-warning: #FFD700; 
+-    
+-    /* Cores de feedback mais modernas (menos saturadas) */
+-    --color-success: #10B981; /* Verde Esmeralda */
+-    --color-error: #EF4444;   /* Vermelho Vivo */
+-}
++:root {
++    /* === PALETA PADRÃO (MODELO DEMO) === */
++    /* Edite aqui para personalizar as cores da oficina */
++    --color-primary: #1d4ed8;     /* Azul principal */
++    --color-light: #f8fafc;       /* Fundo claro */
++    --color-dark: #0f172a;        /* Texto escuro */
++    --color-text: #1f2937;        /* Texto padrão */
++    --color-border: #e2e8f0;      /* Bordas */
++
++    /* === CORES DE AÇÃO === */
++    --color-success: #16a34a;     /* Sucesso */
++    --color-error: #dc2626;       /* Erro */
++    --color-warning: #f59e0b;     /* Alerta */
++}
+ 
+EOF
+)
