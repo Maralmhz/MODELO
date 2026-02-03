@@ -1197,19 +1197,35 @@ function renderizarTabela() {
             const descricaoItem = document.getElementById('descricaoItem');
             const valorItem = document.getElementById('valorItem');
 
-            descricaoItem.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    adicionarItemManual();
-                }
-            });
+            if (descricaoItem) {
+                descricaoItem.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        if (valorItem) {
+                            valorItem.focus();
+                        }
+                    }
+                });
+            }
 
-            valorItem.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    adicionarItemManual();
-                }
-            });
+            if (valorItem) {
+                valorItem.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        const btnAdicionar = document.getElementById('btnAdicionarItem');
+                        if (btnAdicionar) {
+                            btnAdicionar.click();
+                        } else {
+                            adicionarItemManual();
+                        }
+                        if (descricaoItem) {
+                            setTimeout(function() {
+                                descricaoItem.focus();
+                            }, 100);
+                        }
+                    }
+                });
+            }
 
             const camposResumo = ['placa','modelo','chassi','km_entrada','data','hora','combustivel','complexidade'];
             camposResumo.forEach(id => {
@@ -1217,32 +1233,45 @@ function renderizarTabela() {
                 if (!el) return;
                 const tipo = (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'time') ? 'change' : 'input';
                 el.addEventListener(tipo, atualizarResumoVeiculo);
+                el.addEventListener('blur', atualizarResumoVeiculo);
             });
         });
 
         function atualizarResumoVeiculo() {
-            const placa = document.getElementById('placa').value || '-';
-            const modelo = document.getElementById('modelo').value || '-';
-            const chassi = document.getElementById('chassi').value || '-';
-            const kmEntrada = document.getElementById('km_entrada').value || '-';
-            const data = document.getElementById('data').value || '-';
-            const hora = document.getElementById('hora').value || '-';
-            const combustivel = document.getElementById('combustivel').value || '-';
-            const complexidade = document.getElementById('complexidade').value || '-';
+            const placa = document.getElementById('placa')?.value || '-';
+            const modelo = document.getElementById('modelo')?.value || '-';
+            const chassi = document.getElementById('chassi')?.value || '-';
+            const kmEntrada = document.getElementById('km_entrada')?.value || '-';
+            const data = document.getElementById('data')?.value || '-';
+            const hora = document.getElementById('hora')?.value || '-';
+            const combustivel = document.getElementById('combustivel')?.value || '-';
+            const complexidade = document.getElementById('complexidade')?.value || '-';
 
-            document.getElementById('resumoPlaca').textContent = placa;
-            document.getElementById('resumoModelo').textContent = modelo;
-            document.getElementById('resumoChassi').textContent = chassi;
-            document.getElementById('resumoKmEntrada').textContent = kmEntrada;
-            document.getElementById('resumoData').textContent = data;
-            document.getElementById('resumoHora').textContent = hora;
-            document.getElementById('resumoCombustivel').textContent = combustivel;
+            const resumoPlaca = document.getElementById('resumoPlaca');
+            const resumoModelo = document.getElementById('resumoModelo');
+            const resumoChassi = document.getElementById('resumoChassi');
+            const resumoKmEntrada = document.getElementById('resumoKmEntrada');
+            const resumoData = document.getElementById('resumoData');
+            const resumoHora = document.getElementById('resumoHora');
+            const resumoCombustivel = document.getElementById('resumoCombustivel');
+            if (resumoPlaca) resumoPlaca.textContent = placa;
+            if (resumoModelo) resumoModelo.textContent = modelo;
+            if (resumoChassi) resumoChassi.textContent = chassi;
+            if (resumoKmEntrada) resumoKmEntrada.textContent = kmEntrada;
+            if (resumoData) resumoData.textContent = data;
+            if (resumoHora) resumoHora.textContent = hora;
+            if (resumoCombustivel) resumoCombustivel.textContent = combustivel;
 
-            document.getElementById('resumoPlaca2').textContent = placa;
-            document.getElementById('resumoModelo2').textContent = modelo;
-            document.getElementById('resumoChassi2').textContent = chassi;
-            document.getElementById('resumoKmEntrada2').textContent = kmEntrada;
-            document.getElementById('resumoComplexidade').textContent = complexidade || '-';
+            const resumoPlaca2 = document.getElementById('resumoPlaca2');
+            const resumoModelo2 = document.getElementById('resumoModelo2');
+            const resumoChassi2 = document.getElementById('resumoChassi2');
+            const resumoKmEntrada2 = document.getElementById('resumoKmEntrada2');
+            const resumoComplexidade = document.getElementById('resumoComplexidade');
+            if (resumoPlaca2) resumoPlaca2.textContent = placa;
+            if (resumoModelo2) resumoModelo2.textContent = modelo;
+            if (resumoChassi2) resumoChassi2.textContent = chassi;
+            if (resumoKmEntrada2) resumoKmEntrada2.textContent = kmEntrada;
+            if (resumoComplexidade) resumoComplexidade.textContent = complexidade || '-';
 // FOTOS
 const resumoPlaca3 = document.getElementById('resumoPlaca3');
 const resumoModelo3 = document.getElementById('resumoModelo3');
