@@ -22,6 +22,7 @@ window.OFICINA_CONFIG = {
 
     // === IDENTIDADE VISUAL ===
     logo: "logo.png",                                   // Caminho do logo
-    corPrimaria: "#fed97a"                              // Cor principal
+    corPrimaria: "#776b31"                              // Cor principal
 };
+
 
