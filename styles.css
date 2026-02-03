@@ -1,9 +1,26 @@
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/styles.css b/styles.css
-index 6ea6aaae542387f01bb632c46debccd1887b0de2..d69dee6262ac730f56773e90a003f64b1942764b 100644
+index 6ea6aaae542387f01bb632c46debccd1887b0de2..e4161d46ff565fa3e84c3951d442370cf2a9f9e6 100644
 --- a/styles.css
 +++ b/styles.css
-@@ -15,62 +15,50 @@ background: #27ae60;  /* verde sucesso */
+@@ -1,76 +1,63 @@
+-<style>
+-.btn-salvar,
+-.botao-salvar,
+-#btnSalvar,
++.btn-salvar,
++.botao-salvar,
++#btnSalvar,
+ #btnSalvarChecklistAntigo {
+     display: none !important;
+ }
+ 
+ #btnSalvarChecklist {
+     position: fixed;
+     bottom: 16px;
+     right: 16px;
+ 
+ background: #27ae60;  /* verde sucesso */
      color: #ffffff;
  
      border: none;
@@ -66,7 +83,7 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..d69dee6262ac730f56773e90a003f64b
      background-color: #ffffff;
      border-radius: 8px;
      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-@@ -368,56 +356,90 @@ textarea {
+@@ -368,56 +355,90 @@ textarea {
      border-radius: 8px;
      cursor: pointer;
      font-weight: 600;
@@ -163,7 +180,7 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..d69dee6262ac730f56773e90a003f64b
      display: flex;
      flex-wrap: wrap;
      gap: 8px;
-@@ -955,79 +977,97 @@ button {
+@@ -955,79 +976,97 @@ button {
      background-color: #fff5f5;
      color: #c53030;
      border-color: #feb2b2;
@@ -288,6 +305,37 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..d69dee6262ac730f56773e90a003f64b
  
  /* Utilitários */
  .mt-10 { margin-top: 15px; }
+@@ -1129,30 +1168,26 @@ text-align: left;
+ }
+ 
+ /* Passos (Esconde os inativos) */
+ .wizard-step {
+     display: none;
+     animation: fadeIn 0.4s ease;
+ }
+ 
+ .wizard-step.active {
+     display: block;
+ }
+ 
+ /* Botões de Navegação */
+ .wizard-buttons {
+     display: flex;
+     gap: 15px;
+     margin-top: 30px;
+     padding-top: 20px;
+     border-top: 1px solid #eee;
+ }
+ 
+ .wizard-buttons.right {
+     justify-content: flex-end;
+ }
+ 
+-</style>
+-
+-
+-
+ 
  
 EOF
 )
