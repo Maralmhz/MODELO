@@ -999,12 +999,22 @@ text-align: left;
     color: var(--color-success); /* Verde Sucesso */
 }
 
-.os-total-row::before {
-    content: "";
-    display: block;
-    height: 0;
-    page-break-before: always;
-    margin-top: -20px;
+.os-subtotal-row {
+    margin-top: 10px;
+    background: #f7f7f7;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+.os-subtotal-pecas span:last-child {
+    color: #e41616;
+}
+.os-subtotal-servicos span:last-child {
+    color: #0056b3;
 }
 
 
@@ -1152,7 +1162,3 @@ text-align: left;
 }
 
 </style>
-
-
-
-
