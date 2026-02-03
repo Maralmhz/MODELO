@@ -1,10 +1,27 @@
 :root {
-    --color-primary: #555555;
-    --color-dark: #222222;
-    --color-light: #ffffff;
-    --color-text: #333333;
-    --color-border: #dddddd;
-    --color-success: #27ae60;
-    --color-error: #e74c3c;
-    --color-warning: #f39c12;
+    /* -- MUDANÇA PRINCIPAL -- */
+    /* Substitui o tom "sujo" por um Cinza Escuro Profundo (quase preto) */
+    /* Isso fará as barras de título e botões principais combinarem com o fundo da logo */
+    --color-primary: #1F2937; 
+
+    /* Fundo levemente cinza-gelo para tirar o aspecto de "site antigo" do branco puro */
+    --color-light: #F9FAFB;
+    
+    /* Preto real para elementos de destaque */
+    --color-dark: #111827;
+    
+    /* Texto cinza escuro para leitura confortável */
+    --color-text: #374151;
+    
+    /* Bordas mais suaves */
+    --color-border: #E5E7EB;
+    
+    /* -- CORES DE AÇÃO -- */
+    /* AMARELO VIBRANTE (Ajustado para combinar com a logo) */
+    /* Use esta cor para botões de ação ou ícones de alerta */
+    --color-warning: #FFD700; 
+    
+    /* Cores de feedback mais modernas (menos saturadas) */
+    --color-success: #10B981; /* Verde Esmeralda */
+    --color-error: #EF4444;   /* Vermelho Vivo */
 }
