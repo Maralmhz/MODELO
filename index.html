@@ -1845,7 +1845,6 @@ function prevStep(step) {
 
     </script>
     
-</button>
 <script src="config.js"></script>
 <script src="app.js"></script>
     
@@ -1854,74 +1853,5 @@ function prevStep(step) {
     <span id="rodape-texto">Developed by Hallz Branding 3199676-6963</span>
 </div>
 
-    <script>
-    // Atalho: ENTER na Descrição -> Pula para o Valor
-    document.getElementById('descricaoItem').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault(); // Impede de pular linha no texto
-            document.getElementById('valorItem').focus(); // Joga o foco pro Valor
-        }
-    });
-
-    // Atalho: ENTER no Valor -> Clica no botão Adicionar
-    document.getElementById('valorItem').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            // Clica no botão adicionar automaticamente
-            document.getElementById('btnAdicionarItem').click(); 
-            
-            // Opcional: Joga o foco de volta pra descrição pra você continuar digitando
-            setTimeout(function() {
-                document.getElementById('descricaoItem').focus();
-            }, 100); 
-        }
-    });
-</script>
-
-    <script>
-/* --- SCRIPT FALTANTE PARA ATUALIZAR ABA PEÇAS --- */
-
-// 1. Cria a função que copia os dados de uma aba para outra
-function atualizarResumoVeiculo() {
-    // Pega os dados digitados
-    const vPlaca = document.getElementById('placa')?.value || '-';
-    const vModelo = document.getElementById('modelo')?.value || '-';
-    const vChassi = document.getElementById('chassi')?.value || '-';
-    const vKm = document.getElementById('km_entrada')?.value || '-';
-    const vComplex = document.getElementById('complexidade')?.value || '-';
-
-    // Joga nos campos do resumo da Aba 1
-    if(document.getElementById('resumoPlaca')) document.getElementById('resumoPlaca').textContent = vPlaca;
-    if(document.getElementById('resumoModelo')) document.getElementById('resumoModelo').textContent = vModelo;
-    if(document.getElementById('resumoKmEntrada')) document.getElementById('resumoKmEntrada').textContent = vKm;
-
-    // Joga nos campos da Aba 2 (Peças) - AQUI É O PULO DO GATO
-    if(document.getElementById('resumoPlaca2')) document.getElementById('resumoPlaca2').textContent = vPlaca;
-    if(document.getElementById('resumoModelo2')) document.getElementById('resumoModelo2').textContent = vModelo;
-    if(document.getElementById('resumoChassi2')) document.getElementById('resumoChassi2').textContent = vChassi;
-    if(document.getElementById('resumoKmEntrada2')) document.getElementById('resumoKmEntrada2').textContent = vKm;
-    if(document.getElementById('resumoComplexidade')) document.getElementById('resumoComplexidade').textContent = vComplex;
-}
-
-// 2. Avisa o sistema para rodar essa função sempre que você digitar
-const camposMonitorados = ['placa', 'modelo', 'chassi', 'km_entrada', 'complexidade'];
-
-camposMonitorados.forEach(id => {
-    const elemento = document.getElementById(id);
-    if (elemento) {
-        elemento.addEventListener('input', atualizarResumoVeiculo);
-        elemento.addEventListener('change', atualizarResumoVeiculo);
-        elemento.addEventListener('blur', atualizarResumoVeiculo);
-    }
-});
-
-// 3. Roda uma vez agora pra garantir
-setTimeout(atualizarResumoVeiculo, 500);
-</script>
-
-
-
 </body>
 </html>
-
-
