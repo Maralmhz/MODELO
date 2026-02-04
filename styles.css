@@ -1,4 +1,3 @@
-<style>
 .btn-salvar,
 .botao-salvar,
 #btnSalvar,
@@ -35,18 +34,6 @@ background: #27ae60;  /* verde sucesso */
         padding: 10px 14px;
         font-size: 13px;
     }
-}
-
-/* PALETA NEUTRA (será sobrescrita depois via config.js, se quiser) */
-:root {
-    --color-primary: #555555;   /* antes vermelho Fast Car */
-    --color-dark: #222222;
-    --color-light: #ffffff;     /* fundo geral */
-    --color-text: #333333;
-    --color-border: #dddddd;
-    --color-success: #27ae60;
-    --color-error: #e74c3c;
-    --color-warning: #f39c12;
 }
 
 * {
@@ -395,6 +382,40 @@ textarea {
     font-weight: 400;
     cursor: pointer;
     font-size: 13px;
+}
+
+/* --- TOGGLE DE TIPO (PEÇA/SERVIÇO) --- */
+.tipo-item-toggle {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.tipo-item-toggle input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.tipo-item-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid var(--color-border);
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.tipo-item-toggle input[type="radio"]:checked + .tipo-item-option {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .equip-section {
@@ -983,6 +1004,14 @@ text-align: left;
     font-weight: 600;
 }
 
+.os-table-compact {
+    font-size: 10px;
+}
+.os-table-compact th,
+.os-table-compact td {
+    padding: 4px;
+}
+
 /* Total e Rodapé */
 .os-total-row {
     margin-top: 15px;
@@ -999,12 +1028,22 @@ text-align: left;
     color: var(--color-success); /* Verde Sucesso */
 }
 
-.os-total-row::before {
-    content: "";
-    display: block;
-    height: 0;
-    page-break-before: always;
-    margin-top: -20px;
+.os-subtotal-row {
+    margin-top: 10px;
+    background: #f7f7f7;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+.os-subtotal-pecas span:last-child {
+    color: #e41616;
+}
+.os-subtotal-servicos span:last-child {
+    color: #0056b3;
 }
 
 
@@ -1150,9 +1189,5 @@ text-align: left;
 .wizard-buttons.right {
     justify-content: flex-end;
 }
-
-</style>
-
-
 
 
