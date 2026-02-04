@@ -342,7 +342,7 @@
         document.getElementById('placa')?.focus();
         return;
       }
-   }
+    }
     showStep(step);
   }
 
