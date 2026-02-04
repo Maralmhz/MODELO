@@ -25,18 +25,3 @@
     --color-success: #10B981; /* Verde Esmeralda */
     --color-error: #EF4444;   /* Vermelho Vivo */
 }
-:root {
-    /* === PALETA PADRÃO (MODELO DEMO) === */
-    /* Edite aqui para personalizar as cores da oficina */
-    --color-primary: #1d4ed8;     /* Azul principal */
-    --color-light: #f8fafc;       /* Fundo claro */
-    --color-dark: #0f172a;        /* Texto escuro */
-    --color-text: #1f2937;        /* Texto padrão */
-    --color-border: #e2e8f0;      /* Bordas */
-
-    /* === CORES DE AÇÃO === */
-    --color-success: #16a34a;     /* Sucesso */
-    --color-error: #dc2626;       /* Erro */
-   --color-warning: #f59e0b;     /* Alerta */
-}
-
