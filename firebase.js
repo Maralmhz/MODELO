@@ -1,107 +1,103 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-    getFirestore,
-    collection,
-    doc,
-    setDoc,
-    addDoc,
-    serverTimestamp,
-    enableIndexedDbPersistence
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
+// firebase.js
+// SUBSTITUA PELAS SUAS CHAVES DO CONSOLE FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyCpCfotfXYNpQu5o0fFbBvwOnQgU9PuYqU",
-    authDomain: "checklist-oficina-72c9e.firebaseapp.com",
-    projectId: "checklist-oficina-72c9e",
-    storageBucket: "checklist-oficina-72c9e.firebasestorage.app",
-    messagingSenderId: "305423384809",
-    appId: "1:305423384809:web:b152970a419848a0147078"
+    apiKey: "SUA_API_KEY_AQUI",
+    authDomain: "SEU_PROJETO.firebaseapp.com",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_PROJETO.firebasestorage.app",
+    messagingSenderId: "SEU_MESSAGING_ID",
+    appId: "SEU_APP_ID"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Inicializa Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-enableIndexedDbPersistence(db).catch(() => {
-    // fallback silencioso se já houver múltiplas abas abertas
-});
+// Verifica status da conexão
+const syncStatus = document.getElementById('syncStatus');
+const syncText = document.getElementById('syncText');
 
-function getOficinaId() {
-    return window.OFICINA_CONFIG?.oficinaId || "oficina_demo";
+function updateOnlineStatus() {
+    if (navigator.onLine) {
+        if (syncStatus) {
+            syncStatus.style.background = 'var(--color-success)'; // Verde
+            syncStatus.classList.remove('offline');
+        }
+        if (syncText) syncText.textContent = 'Online (Firebase)';
+    } else {
+        if (syncStatus) {
+            syncStatus.style.background = 'var(--color-error)'; // Vermelho
+            syncStatus.classList.add('offline');
+        }
+        if (syncText) syncText.textContent = 'Offline (Local)';
+    }
 }
 
-function getDadosEmpresa() {
-    const cfg = window.OFICINA_CONFIG || {};
-    return {
-        nome: cfg.nome || "OFICINA",
-        cnpj: cfg.cnpj || "",
-        endereco: cfg.endereco || "",
-        telefone: cfg.telefone || "",
-        whatsapp: cfg.whatsapp || "",
-        atualizadoEm: serverTimestamp()
-    };
-}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
 
-async function registrarEmpresa() {
-    const oficinaId = getOficinaId();
-    const ref = doc(db, "oficinas", oficinaId);
-    await setDoc(ref, getDadosEmpresa(), { merge: true });
-}
-
-function getPendingKey() {
-    return `pending_checklists_${getOficinaId()}`;
-}
-
-function readPending() {
+// Função Híbrida: Salva no Firebase E no LocalStorage
+async function salvarChecklistHibrido(checklist) {
     try {
-        return JSON.parse(localStorage.getItem(getPendingKey()) || "[]");
-    } catch (_) {
-        return [];
+        // 1. Salva Localmente (Backup instantâneo)
+        let localData = JSON.parse(localStorage.getItem('checklists')) || [];
+        
+        // Remove se já existir (atualização)
+        localData = localData.filter(c => c.id !== checklist.id);
+        localData.push(checklist);
+        localStorage.setItem('checklists', JSON.stringify(localData));
+
+        // 2. Tenta Salvar no Firebase
+        if (navigator.onLine) {
+            // Usa o ID como nome do documento para evitar duplicatas
+            await db.collection("checklists").doc(String(checklist.id)).set(checklist);
+            console.log("Salvo no Firebase com sucesso!");
+            return true; 
+        } else {
+            console.warn("Offline: Salvo apenas localmente. Sincronize quando voltar.");
+            return false; // Retorna false para indicar que foi só local
+        }
+    } catch (error) {
+        console.error("Erro ao salvar no Firebase:", error);
+        alert("Erro ao salvar na nuvem. Cópia local garantida.");
+        return false;
     }
 }
 
-function writePending(items) {
-    localStorage.setItem(getPendingKey(), JSON.stringify(items));
-}
-
-async function saveChecklist(checklist) {
-    const oficinaId = getOficinaId();
-    const payload = {
-        ...checklist,
-        criadoEm: serverTimestamp()
-    };
-
-    if (!navigator.onLine) {
-        const pending = readPending();
-        pending.push(payload);
-        writePending(pending);
-        return { status: "offline" };
+// Função para Carregar Histórico (Prioriza Firebase, fallback Local)
+async function carregarHistoricoHibrido() {
+    if (navigator.onLine) {
+        try {
+            const snapshot = await db.collection("checklists").orderBy("datacriacao", "desc").limit(50).get();
+            const firebaseData = snapshot.docs.map(doc => doc.data());
+            
+            // Atualiza o LocalStorage com os dados mais recentes da nuvem (Sincronia básica)
+            localStorage.setItem('checklists', JSON.stringify(firebaseData));
+            return firebaseData;
+        } catch (error) {
+            console.error("Erro ao ler Firebase:", error);
+            return JSON.parse(localStorage.getItem('checklists')) || [];
+        }
+    } else {
+        return JSON.parse(localStorage.getItem('checklists')) || [];
     }
-
-    await registrarEmpresa();
-    const ref = collection(db, "oficinas", oficinaId, "checklists");
-    await addDoc(ref, payload);
-    return { status: "online" };
 }
 
-async function syncPending() {
-    if (!navigator.onLine) return { synced: 0 };
-    const pending = readPending();
-    if (!pending.length) return { synced: 0 };
+// Função para Excluir
+async function excluirChecklistHibrido(id) {
+    // 1. Remove Local
+    let localData = JSON.parse(localStorage.getItem('checklists')) || [];
+    localData = localData.filter(c => c.id !== id);
+    localStorage.setItem('checklists', JSON.stringify(localData));
 
-    await registrarEmpresa();
-    const oficinaId = getOficinaId();
-    const ref = collection(db, "oficinas", oficinaId, "checklists");
-
-    let synced = 0;
-    for (const item of pending) {
-        await addDoc(ref, item);
-        synced += 1;
+    // 2. Remove Firebase
+    if (navigator.onLine) {
+        try {
+            await db.collection("checklists").doc(String(id)).delete();
+            console.log("Deletado do Firebase");
+        } catch (error) {
+            console.error("Erro ao deletar do Firebase:", error);
+        }
     }
-    writePending([]);
-    return { synced };
 }
-
-window.FirebaseService = {
-    saveChecklist,
-    syncPending
-};
