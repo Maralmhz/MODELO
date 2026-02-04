@@ -223,6 +223,3 @@
   window.imprimirResumo = imprimirResumo;
   window.gerarPDFResumo = gerarPDFResumo;
 })();
- 
-
-)
