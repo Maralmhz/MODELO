@@ -1,11 +1,4 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/fotos.js b/fotos.js
-new file mode 100644
-index 0000000000000000000000000000000000000000..a09e6598507b24a8a60bbb78d5b4d0f8a4a12562
---- /dev/null
-+++ b/fotos.js
-@@ -0,0 +1,220 @@
-+(function () {
+(function () {
 +  let streamCamera = null;
 +  let fotosVeiculo = JSON.parse(localStorage.getItem('fotosVeiculo') || '[]');
 +
@@ -225,6 +218,3 @@ index 0000000000000000000000000000000000000000..a09e6598507b24a8a60bbb78d5b4d0f8
 +  window.limparFotos = limparFotos;
 +  window.gerarPDFFotos = gerarPDFFotos;
 +})();
- 
-EOF
-)
