@@ -1,32 +1,48 @@
-// firebase.js
-// SUBSTITUA PELAS SUAS CHAVES DO CONSOLE FIREBASE
+// firebase.js - Conexão e Lógica Híbrida (Online/Offline)
+
+// 1. Configuração do Firebase (Suas chaves reais)
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "SEU_PROJETO.firebaseapp.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_PROJETO.firebasestorage.app",
-    messagingSenderId: "SEU_MESSAGING_ID",
-    appId: "SEU_APP_ID"
+  apiKey: "AIzaSyCpCfotfXYNpQu5o0fFbBvwOnQgU9PuYqU",
+  authDomain: "checklist-oficina-72c9e.firebaseapp.com",
+  projectId: "checklist-oficina-72c9e",
+  storageBucket: "checklist-oficina-72c9e.firebasestorage.app",
+  messagingSenderId: "305423384809",
+  appId: "1:305423384809:web:b152970a419848a0147078"
 };
 
-// Inicializa Firebase
-firebase.initializeApp(firebaseConfig);
+// 2. Inicializa Firebase (Usando a versão global 'firebase' carregada no HTML)
+// Verificação de segurança para não inicializar duas vezes
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+// 3. Obtém referência ao Banco de Dados (Firestore)
 const db = firebase.firestore();
 
-// Verifica status da conexão
+// Opcional: Habilitar persistência offline nativa do Firestore (cache inteligente)
+db.enablePersistence()
+  .catch((err) => {
+      if (err.code == 'failed-precondition') {
+          console.warn('Persistência falhou: Múltiplas abas abertas.');
+      } else if (err.code == 'unimplemented') {
+          console.warn('Persistência não suportada neste navegador.');
+      }
+  });
+
+// 4. Monitoramento de Conexão (UI)
 const syncStatus = document.getElementById('syncStatus');
 const syncText = document.getElementById('syncText');
 
 function updateOnlineStatus() {
     if (navigator.onLine) {
         if (syncStatus) {
-            syncStatus.style.background = 'var(--color-success)'; // Verde
+            syncStatus.style.background = '#10B981'; // Verde (Sucesso)
             syncStatus.classList.remove('offline');
         }
-        if (syncText) syncText.textContent = 'Online (Firebase)';
+        if (syncText) syncText.textContent = 'Online (Nuvem)';
     } else {
         if (syncStatus) {
-            syncStatus.style.background = 'var(--color-error)'; // Vermelho
+            syncStatus.style.background = '#EF4444'; // Vermelho (Erro)
             syncStatus.classList.add('offline');
         }
         if (syncText) syncText.textContent = 'Offline (Local)';
@@ -35,69 +51,85 @@ function updateOnlineStatus() {
 
 window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
-updateOnlineStatus();
+// Roda uma vez ao carregar
+document.addEventListener('DOMContentLoaded', updateOnlineStatus);
 
-// Função Híbrida: Salva no Firebase E no LocalStorage
+// ======================================================
+// FUNÇÕES HÍBRIDAS (Salva Local + Nuvem)
+// ======================================================
+
+// Salvar Checklist
 async function salvarChecklistHibrido(checklist) {
     try {
-        // 1. Salva Localmente (Backup instantâneo)
+        // A. Salva no LocalStorage (Backup imediato e garantido)
         let localData = JSON.parse(localStorage.getItem('checklists')) || [];
-        
-        // Remove se já existir (atualização)
+        // Remove versão antiga se existir
         localData = localData.filter(c => c.id !== checklist.id);
-        localData.push(checklist);
+        // Adiciona nova versão no topo
+        localData.unshift(checklist);
         localStorage.setItem('checklists', JSON.stringify(localData));
 
-        // 2. Tenta Salvar no Firebase
+        // B. Tenta Salvar no Firebase (Firestore)
         if (navigator.onLine) {
-            // Usa o ID como nome do documento para evitar duplicatas
+            // Usa o ID numérico como ID do documento (converte para string)
             await db.collection("checklists").doc(String(checklist.id)).set(checklist);
-            console.log("Salvo no Firebase com sucesso!");
-            return true; 
+            console.log("✅ Salvo no Firebase com sucesso!");
+            return true; // Retorna true: Salvo na nuvem
         } else {
-            console.warn("Offline: Salvo apenas localmente. Sincronize quando voltar.");
-            return false; // Retorna false para indicar que foi só local
+            console.warn("⚠️ Offline: Salvo apenas no dispositivo.");
+            return false; // Retorna false: Salvo só local
         }
     } catch (error) {
-        console.error("Erro ao salvar no Firebase:", error);
-        alert("Erro ao salvar na nuvem. Cópia local garantida.");
+        console.error("❌ Erro ao salvar no Firebase:", error);
         return false;
     }
 }
 
-// Função para Carregar Histórico (Prioriza Firebase, fallback Local)
+// Carregar Histórico
 async function carregarHistoricoHibrido() {
+    // Se estiver online, tenta pegar do Firebase primeiro
     if (navigator.onLine) {
         try {
-            const snapshot = await db.collection("checklists").orderBy("datacriacao", "desc").limit(50).get();
-            const firebaseData = snapshot.docs.map(doc => doc.data());
+            const snapshot = await db.collection("checklists")
+                                     .orderBy("datacriacao", "desc")
+                                     .limit(50)
+                                     .get();
             
-            // Atualiza o LocalStorage com os dados mais recentes da nuvem (Sincronia básica)
-            localStorage.setItem('checklists', JSON.stringify(firebaseData));
-            return firebaseData;
+            if (!snapshot.empty) {
+                const firebaseData = snapshot.docs.map(doc => doc.data());
+                
+                // Atualiza o LocalStorage com os dados frescos da nuvem
+                localStorage.setItem('checklists', JSON.stringify(firebaseData));
+                console.log(`📦 ${firebaseData.length} itens carregados da Nuvem.`);
+                return firebaseData;
+            }
         } catch (error) {
-            console.error("Erro ao ler Firebase:", error);
-            return JSON.parse(localStorage.getItem('checklists')) || [];
+            console.error("Erro ao ler Firebase, usando cache local:", error);
         }
-    } else {
-        return JSON.parse(localStorage.getItem('checklists')) || [];
     }
+    
+    // Fallback: Se estiver offline ou der erro, usa LocalStorage
+    console.log("📂 Carregando dados locais (LocalStorage).");
+    return JSON.parse(localStorage.getItem('checklists')) || [];
 }
 
-// Função para Excluir
+// Excluir Checklist
 async function excluirChecklistHibrido(id) {
-    // 1. Remove Local
+    // 1. Remove do LocalStorage imediatamente
     let localData = JSON.parse(localStorage.getItem('checklists')) || [];
     localData = localData.filter(c => c.id !== id);
     localStorage.setItem('checklists', JSON.stringify(localData));
 
-    // 2. Remove Firebase
+    // 2. Remove do Firebase se tiver internet
     if (navigator.onLine) {
         try {
             await db.collection("checklists").doc(String(id)).delete();
-            console.log("Deletado do Firebase");
+            console.log("🗑️ Deletado do Firebase.");
         } catch (error) {
             console.error("Erro ao deletar do Firebase:", error);
+            alert("Item deletado localmente, mas houve erro ao deletar da nuvem.");
         }
+    } else {
+        alert("Item deletado do dispositivo. Será necessário deletar da nuvem quando estiver online.");
     }
 }
