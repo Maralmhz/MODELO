@@ -1,380 +1,205 @@
-(function () {
-  function qs(sel) { return document.querySelector(sel); }
+// main.js - Gerencia lógica principal e integração com Firebase
 
-  function mostrarAlerta(tipo, mensagem) {
-    const map = {
-      success: '#successMessage',
-      error: '#errorMessage',
-      info: '#infoMessage'
-    };
-    const el = qs(map[tipo] || '#infoMessage');
-    if (!el) {
-      alert(mensagem);
-      return;
-    }
-    el.textContent = mensagem;
-    el.classList.add('show');
-    clearTimeout(el.__alertTimer);
-    el.__alertTimer = setTimeout(() => el.classList.remove('show'), 4500);
-  }
+document.addEventListener('DOMContentLoaded', () => {
+    carregarHistorico();
+    atualizarResumoVeiculo();
+    
+    // Enter nos campos de orçamento
+    setupEnterKeyNavigation();
+});
 
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-    const tab = document.getElementById(tabId);
-    if (tab) tab.classList.add('active');
-    document.querySelectorAll('.tab-button').forEach(btn => {
-      if (btn.getAttribute('onclick')?.includes(tabId)) btn.classList.add('active');
-    });
-
-    if (tabId === 'historico') carregarHistorico();
-    if (tabId === 'relatorios') atualizarRelatorios();
-    if (tabId === 'orcamento' && typeof window.atualizarResumoVeiculo === 'function') {
-      window.atualizarResumoVeiculo();
-    }
-  }
-
-  async function salvarChecklist() {
-    const placa = document.getElementById('placa')?.value?.trim();
+// === FUNÇÃO SALVAR PRINCIPAL (AGORA HÍBRIDA) ===
+async function salvarChecklist() {
+    const placa = document.getElementById('placa').value;
     if (!placa) {
-      alert('Por favor, preencha pelo menos a PLACA para salvar.');
-      return;
+        alert('Por favor, preencha pelo menos a PLACA para salvar.');
+        return;
     }
 
-    const formData = {};
-    const elements = document.getElementById('checklistForm')?.elements || [];
+    const btnSalvar = document.getElementById('btnSalvarChecklist');
+    if(btnSalvar) {
+        btnSalvar.textContent = "Salvando...";
+        btnSalvar.disabled = true;
+    }
 
-    for (const item of elements) {
-      if (!item.name) continue;
-      if (item.type === 'checkbox') {
-        if (item.checked) {
-          if (!formData[item.name]) formData[item.name] = [];
-          formData[item.name].push(item.value);
+    // Coleta dados do formulário
+    const formData = {};
+    const elements = document.getElementById('checklistForm').elements;
+    
+    for (let i = 0; i < elements.length; i++) {
+        const item = elements[i];
+        if (item.name) {
+            if (item.type === 'checkbox') {
+                if (item.checked) {
+                    if (!formData[item.name]) formData[item.name] = [];
+                    formData[item.name].push(item.value);
+                }
+            } else if (item.type !== 'button') {
+                formData[item.name] = item.value;
+            }
         }
-      } else if (item.type !== 'button') {
-        formData[item.name] = item.value;
-      }
     }
 
     const checklist = {
-      id: Date.now(),
-      data_criacao: new Date().toISOString(),
-      ...formData,
-      itensOrcamento: window.itensOrcamento || [],
-      complexidade: document.getElementById('complexidade')?.value || ''
+        id: Date.now(),
+        datacriacao: new Date().toISOString(),
+        ...formData,
+        itensOrcamento: window.itensOrcamento || [], // Vem de orcamento.js
+        complexidade: document.getElementById('complexidade')?.value || "",
+        fotos: window.fotosVeiculo || [] // Vem de fotos.js
     };
 
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    checklists.push(checklist);
-    localStorage.setItem('checklists', JSON.stringify(checklists));
+    // CHAMA A FUNÇÃO HÍBRIDA DO FIREBASE.JS
+    const salvouNuvem = await salvarChecklistHibrido(checklist);
 
-    if (window.itensOrcamento) {
-      window.itensOrcamento = [];
-      if (typeof window.renderizarTabela === 'function') {
-        window.renderizarTabela();
-      }
-    }
-
-    if (window.FirebaseService?.saveChecklist) {
-      try {
-        const result = await window.FirebaseService.saveChecklist(checklist);
-        if (result?.status === 'offline') {
-          mostrarAlerta('info', '✅ Checklist salvo offline. Será sincronizado quando houver internet.');
-        } else {
-          mostrarAlerta('success', '✅ Checklist salvo no banco de dados.');
-        }
-      } catch (error) {
-        console.error(error);
-        mostrarAlerta('error', '⚠️ Não foi possível salvar no banco.');
-      }
+    if(salvouNuvem) {
+        alert("✅ Checklist salvo no SISTEMA (Nuvem) com sucesso!");
     } else {
-      mostrarAlerta('success', '✅ Checklist salvo localmente.');
+        alert("⚠️ Checklist salvo LOCALMENTE (Sem internet). Será sincronizado depois.");
     }
 
-    document.getElementById('checklistForm')?.reset();
-    if (typeof window.atualizarResumoVeiculo === 'function') {
-      window.atualizarResumoVeiculo();
-    }
-    switchTab('historico');
-  }
+    // Limpa e reseta
+    window.itensOrcamento = [];
+    window.fotosVeiculo = [];
+    renderizarTabela(); // orcamento.js
+    
+    document.getElementById('checklistForm').reset();
+    document.getElementById('galeriaFotos').innerHTML = ""; // fotos.js
+    
+    atualizarResumoVeiculo(); // resumo-veiculo.js
+    switchTab('historico'); // form-nav.js
+    carregarHistorico(); // Recarrega lista
 
-  function carregarHistorico() {
+    if(btnSalvar) {
+        btnSalvar.textContent = "💾 Salvar";
+        btnSalvar.disabled = false;
+    }
+}
+
+// === CARREGAR HISTÓRICO (AGORA HÍBRIDO) ===
+async function carregarHistorico() {
     const listaDiv = document.getElementById('checklistsList');
     const emptyMsg = document.getElementById('emptyMessage');
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
+    
+    listaDiv.innerHTML = '<p style="text-align:center; padding:20px;">Carregando dados...</p>';
 
-    if (!listaDiv || !emptyMsg) return;
+    // CHAMA A FUNÇÃO HÍBRIDA
+    const checklists = await carregarHistoricoHibrido();
 
-    listaDiv.innerHTML = '';
-    if (!checklists.length) {
-      emptyMsg.style.display = 'block';
-      return;
+    listaDiv.innerHTML = ""; // Limpa loading
+
+    if (!checklists || checklists.length === 0) {
+        if(emptyMsg) emptyMsg.style.display = 'block';
+        return;
+    } else {
+        if(emptyMsg) emptyMsg.style.display = 'none';
     }
-    emptyMsg.style.display = 'none';
 
-    checklists.slice().reverse().forEach(item => {
-      const dataFormatada = new Date(item.data_criacao).toLocaleDateString('pt-BR');
-      const horaFormatada = new Date(item.data_criacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const card = document.createElement('div');
-      card.className = 'checklist-item';
-      card.innerHTML = `
-        <div class="checklist-info">
-          <h4>${(item.placa || '').toUpperCase()} - ${item.modelo || 'Modelo não inf.'}</h4>
-          <p>📅 ${dataFormatada} às ${horaFormatada} | 👤 ${item.nome_cliente || 'Cliente não inf.'}</p>
-        </div>
-        <div class="checklist-actions">
-          <button class="btn-small btn-secondary" onclick="carregarChecklist(${item.id})">✏️ Editar</button>
-          <button class="btn-small btn-danger" onclick="excluirChecklist(${item.id})">🗑️</button>
-        </div>
-      `;
-      listaDiv.appendChild(card);
+    // Renderiza lista
+    checklists.forEach(item => {
+        const dataObj = new Date(item.datacriacao);
+        const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+        const horaFormatada = dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute:'2-digit' });
+
+        const card = document.createElement('div');
+        card.className = 'checklist-item';
+        // Estilo inline para o card (já que não tenho o CSS dessa classe específica aqui, garante visual básico)
+        card.style.border = "1px solid #ddd";
+        card.style.padding = "15px";
+        card.style.marginBottom = "10px";
+        card.style.borderRadius = "8px";
+        card.style.background = "#fff";
+        card.style.display = "flex";
+        card.style.justifyContent = "space-between";
+        card.style.alignItems = "center";
+
+        card.innerHTML = `
+            <div class="checklist-info">
+                <h4 style="margin:0; color:#333;">${(item.placa || 'SEM PLACA').toUpperCase()} - ${item.modelo || 'Modelo não inf.'}</h4>
+                <p style="margin:5px 0 0 0; font-size:12px; color:#666;">${dataFormatada} às ${horaFormatada} • ${item.nomecliente || 'Cliente não inf.'}</p>
+            </div>
+            <div class="checklist-actions" style="display:flex; gap:10px;">
+                <button class="btn-small btn-secondary" onclick="carregarChecklist(${item.id})">✏️ Editar</button>
+                <button class="btn-small btn-danger" onclick="excluirChecklist(${item.id})">🗑️</button>
+            </div>
+        `;
+        listaDiv.appendChild(card);
     });
-  }
+    
+    // Atualiza totais na aba relatórios
+    if(document.getElementById('totalChecklists')) {
+        document.getElementById('totalChecklists').textContent = checklists.length;
+    }
+}
 
-  function marcarCheckbox(name, value) {
-    const els = document.getElementsByName(name);
-    els.forEach(el => { if (el.value === value) el.checked = true; });
-  }
+// === EXCLUIR ===
+async function excluirChecklist(id) {
+    if (confirm('Tem certeza que deseja excluir este checklist permanentemente?')) {
+        await excluirChecklistHibrido(id);
+        carregarHistorico(); // Recarrega a tela
+    }
+}
 
-  function carregarChecklist(id) {
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    const item = checklists.find(c => c.id === id);
+// === CARREGAR CHECKLIST PARA EDIÇÃO ===
+// Esta função pega os dados (do local ou nuvem) e preenche o formulário
+async function carregarChecklist(id) {
+    const checklists = await carregarHistoricoHibrido();
+    const item = checklists.find(c => c.id == id); // == pq id pode ser string ou number
+
     if (!item) return;
 
     switchTab('novo-checklist');
 
-    if (document.getElementById('nome_cliente')) {
-      document.getElementById('nome_cliente').value = item.nome_cliente || '';
-    }
-    if (document.getElementById('cpf_cnpj')) {
-      document.getElementById('cpf_cnpj').value = item.cpf_cnpj || '';
-    }
-    if (document.getElementById('celular_cliente')) {
-      document.getElementById('celular_cliente').value = item.celular_cliente || '';
-    }
-    if (document.getElementById('placa')) {
-      document.getElementById('placa').value = item.placa || '';
-    }
-    if (document.getElementById('modelo')) {
-      document.getElementById('modelo').value = item.modelo || '';
-    }
-
+    // Preenche campos de texto simples
     for (const key in item) {
-      const el = document.getElementsByName(key)[0];
-      if (el && !['checkbox', 'file', 'radio'].includes(el.type)) {
-        el.value = item[key];
-      }
+        const el = document.getElementsByName(key)[0];
+        if (el && el.type !== 'checkbox' && el.type !== 'file' && el.type !== 'radio') {
+            el.value = item[key];
+        }
     }
+    
+    // IDs específicos que as vezes não batem com name
+    if(document.getElementById('placa')) document.getElementById('placa').value = item.placa || '';
+    if(document.getElementById('modelo')) document.getElementById('modelo').value = item.modelo || '';
+    // ... adicione outros se necessário
 
+    // Checkboxes
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     if (item.equipamentos) item.equipamentos.forEach(val => marcarCheckbox('equipamentos', val));
     if (item.caracteristicas) item.caracteristicas.forEach(val => marcarCheckbox('caracteristicas', val));
     if (item.cambio) item.cambio.forEach(val => marcarCheckbox('cambio', val));
     if (item.tracao) item.tracao.forEach(val => marcarCheckbox('tracao', val));
 
+    // Orçamento
     window.itensOrcamento = item.itensOrcamento || [];
-    const complexidade = document.getElementById('complexidade');
-    if (complexidade) complexidade.value = item.complexidade || '';
-    if (typeof window.renderizarTabela === 'function') {
-      window.renderizarTabela();
-    }
+    if(document.getElementById('complexidade')) document.getElementById('complexidade').value = item.complexidade || '';
+    renderizarTabela(); // orcamento.js
 
-    if (typeof window.atualizarResumoVeiculo === 'function') {
-      window.atualizarResumoVeiculo();
-    }
-  }
+    // Fotos (Se você quiser recuperar fotos, precisaria salvar no Storage do Firebase, 
+    // por enquanto recupera se estiver salvo em Base64 no documento, o que não é ideal para muitas fotos)
+    window.fotosVeiculo = item.fotos || [];
+    // Recarregar galeria visualmente seria implementado no fotos.js se necessário
 
-  function excluirChecklist(id) {
-    if (!confirm('Tem certeza que deseja excluir este checklist?')) return;
-    let checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    checklists = checklists.filter(c => c.id !== id);
-    localStorage.setItem('checklists', JSON.stringify(checklists));
-    carregarHistorico();
-  }
+    atualizarResumoVeiculo();
+}
 
-  function filtrarChecklists() {
-    const termo = document.getElementById('searchInput')?.value?.toLowerCase() || '';
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    const listaDiv = document.getElementById('checklistsList');
-    const emptyMsg = document.getElementById('emptyMessage');
-    if (!listaDiv || !emptyMsg) return;
-
-    listaDiv.innerHTML = '';
-
-    const filtrados = checklists.filter(item => {
-      const texto = ((item.placa || '') + ' ' + (item.modelo || '') + ' ' + (item.nome_cliente || '')).toLowerCase();
-      return texto.includes(termo);
+function marcarCheckbox(name, value) {
+    const els = document.getElementsByName(name);
+    els.forEach(el => {
+        if (el.value === value) el.checked = true;
     });
+}
 
-    if (!filtrados.length) {
-      emptyMsg.style.display = 'block';
-      return;
-    }
-    emptyMsg.style.display = 'none';
-
-    filtrados.slice().reverse().forEach(item => {
-      const dataFormatada = new Date(item.data_criacao).toLocaleDateString('pt-BR');
-      const horaFormatada = new Date(item.data_criacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const card = document.createElement('div');
-      card.className = 'checklist-item';
-      card.innerHTML = `
-        <div class="checklist-info">
-          <h4>${(item.placa || '').toUpperCase()} - ${item.modelo || 'Modelo não inf.'}</h4>
-          <p>📅 ${dataFormatada} às ${horaFormatada} | 👤 ${item.nome_cliente || 'Cliente não inf.'}</p>
-        </div>
-        <div class="checklist-actions">
-          <button class="btn-small btn-secondary" onclick="carregarChecklist(${item.id})">✏️ Editar</button>
-          <button class="btn-small btn-danger" onclick="excluirChecklist(${item.id})">🗑️</button>
-        </div>
-      `;
-      listaDiv.appendChild(card);
+function setupEnterKeyNavigation() {
+    // Código para navegar com Enter (mantido do original)
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach((input, index) => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && input.type !== 'button' && input.type !== 'submit') {
+                e.preventDefault();
+                const next = inputs[index + 1];
+                if (next) next.focus();
+            }
+        });
     });
-  }
-
-  function ordenarChecklists() {
-    const checklists = JSON.parse(localStorage.getItem('checklists') || '[]');
-    checklists.sort((a, b) => {
-      const placaA = (a.placa || '').toUpperCase();
-      const placaB = (b.placa || '').toUpperCase();
-      if (placaA < placaB) return -1;
-      if (placaA > placaB) return 1;
-      return 0;
-    });
-    localStorage.setItem('checklists', JSON.stringify(checklists));
-    carregarHistorico();
-  }
-
-  function limparFormulario() {
-    if (!confirm('Limpar todos os campos do formulário?')) return;
-    document.getElementById('checklistForm')?.reset();
-    if (typeof window.atualizarResumoVeiculo === 'function') {
-      window.atualizarResumoVeiculo();
-    }
-  }
-
-  function exportarDados() {
-    const db = JSON.parse(localStorage.getItem('checklists') || '[]');
-    if (!db.length) {
-      alert('Não há dados para exportar.');
-      return;
-    }
-    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'checklists.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function limparTodosDados() {
-    if (!confirm('Deseja apagar TODO o histórico?')) return;
-    localStorage.removeItem('checklists');
-    carregarHistorico();
-    alert('Histórico limpo.');
-  }
-
-  function atualizarRelatorios() {
-    const db = JSON.parse(localStorage.getItem('checklists') || '[]');
-    const totalEl = document.getElementById('totalChecklists');
-    const mesEl = document.getElementById('checklistsMes');
-    if (totalEl) totalEl.textContent = db.length;
-
-    const hoje = new Date();
-    const mesAtual = hoje.getMonth();
-    const anoAtual = hoje.getFullYear();
-
-    const doMes = db.filter(item => {
-      if (!item.data_criacao) return false;
-      const dataItem = new Date(item.data_criacao);
-      return dataItem.getMonth() === mesAtual && dataItem.getFullYear() === anoAtual;
-    });
-    if (mesEl) mesEl.textContent = doMes.length;
-
-    const marcas = {};
-    db.forEach(item => {
-      const modeloTexto = item.modelo || 'Não Informado';
-      const m = modeloTexto.split(' ')[0].toUpperCase();
-      marcas[m] = (marcas[m] || 0) + 1;
-    });
-
-    const sortedMarcas = Object.entries(marcas).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    let htmlGrafico = '';
-    sortedMarcas.forEach(([marca, qtd]) => {
-      const pct = db.length ? (qtd / db.length) * 100 : 0;
-      htmlGrafico += `
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:2px;">
-            <strong>${marca}</strong>
-            <span>${qtd}</span>
-          </div>
-          <div style="background:#eee; height:8px; border-radius:4px; overflow:hidden;">
-            <div style="background:var(--color-primary); width:${pct}%; height:100%;"></div>
-          </div>
-        </div>
-      `;
-    });
-
-    if (!sortedMarcas.length) {
-      htmlGrafico = '<p style="text-align:center; color:#999; font-size:12px;">Sem dados suficientes.</p>';
-    }
-
-    const grafico = document.getElementById('graficoMarcas');
-    if (grafico) grafico.innerHTML = htmlGrafico;
-  }
-
-  function showStep(stepNumber) {
-    document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
-    const step = document.getElementById('step' + stepNumber);
-    if (step) step.classList.add('active');
-    document.querySelectorAll('.step-indicator').forEach(el => {
-      el.classList.remove('active');
-      if (el.dataset.step == stepNumber) el.classList.add('active');
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function nextStep(step) {
-    if (step === 2) {
-      const placa = document.getElementById('placa')?.value;
-      if (!placa) {
-        alert('⚠️ Por favor, digite a PLACA antes de continuar.');
-        document.getElementById('placa')?.focus();
-        return;
-      }
-    }
-    showStep(step);
-  }
-
-  function prevStep(step) {
-    showStep(step);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    carregarHistorico();
-
-    if (window.FirebaseService?.syncPending) {
-      window.FirebaseService.syncPending().catch(console.error);
-    }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('data:application/javascript;base64,CmNvbnN0IENBQ0hFX05BTUUgPSAnY2hlY2tsaXN0LXYzLWNhY2hlJzsKY29uc3QgVVJMU19UT19DQUNIRSA9IFsKICAnLycsCiAgJy9pbmRleC5odG1sJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgKGV2ZW50KSA9PiB7CiAgY29uc3QgY2FjaGVPcGVuID0gY2FjaGVzLm9wZW4oQ0FDSEVfTkFNRSkudGhlbigY2xpZW50KSA9PiB7CiAgICByZXR1cm4gY2xpZW50LmFkZEFsbChVUkxzX1RPX0NBQ0hFKTsKICB9KTsKICBldmVudC53YWl0VW50aWwoKGNhY2hlT3Blbik7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIChldmVudCkgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpLnRoZW4oKHJlc3BvbnNlKSA9PiB7CiAgICAgIGlmIChyZXNwb25zZSkgewogICAgICAgIHJldHVybiByZXNwb25zZTsKICAgICAgfQogICAgICByZXR1cm4gZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICB9KQogICk7Cn0pOwo=');
-    }
-  });
-
-  window.switchTab = switchTab;
-  window.salvarChecklist = salvarChecklist;
-  window.carregarHistorico = carregarHistorico;
-  window.carregarChecklist = carregarChecklist;
-  window.excluirChecklist = excluirChecklist;
-  window.filtrarChecklists = filtrarChecklists;
-  window.ordenarChecklists = ordenarChecklists;
-  window.limparFormulario = limparFormulario;
-  window.exportarDados = exportarDados;
-  window.limparTodosDados = limparTodosDados;
-  window.atualizarRelatorios = atualizarRelatorios;
-  window.mostrarAlerta = mostrarAlerta;
-  window.showStep = showStep;
-  window.nextStep = nextStep;
-  window.prevStep = prevStep;
-})();
+}
