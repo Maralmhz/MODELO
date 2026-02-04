@@ -1,8 +1,4 @@
-diff --git a/app.js b/app.js
-index b873be50e10ee817aa4303a07132ed288ce5c034..0651be0fbf7a44e0d7f09cf5fa9913f1695cbfc9 100644
---- a/app.js
-+++ b/app.js
-@@ -2,31 +2,44 @@ document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
      // garante que config.js já foi carregado via <script src="config.js"> no HTML
      if (!window.OFICINA_CONFIG) {
          console.warn('OFICINA_CONFIG não encontrado. Usando textos padrão do HTML.');
@@ -51,3 +47,4 @@ index b873be50e10ee817aa4303a07132ed288ce5c034..0651be0fbf7a44e0d7f09cf5fa9913f1
 +    });
  
  });
+
