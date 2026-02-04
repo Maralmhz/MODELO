@@ -1,16 +1,10 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/styles.css b/styles.css
-index 6ea6aaae542387f01bb632c46debccd1887b0de2..e4161d46ff565fa3e84c3951d442370cf2a9f9e6 100644
---- a/styles.css
-+++ b/styles.css
-@@ -1,76 +1,63 @@
--<style>
--.btn-salvar,
--.botao-salvar,
--#btnSalvar,
-+.btn-salvar,
-+.botao-salvar,
-+#btnSalvar,
+<style>
+.btn-salvar,
+.botao-salvar,
+#btnSalvar,
+.btn-salvar,
+.botao-salvar,
+#btnSalvar,
  #btnSalvarChecklistAntigo {
      display: none !important;
  }
@@ -46,18 +40,18 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..e4161d46ff565fa3e84c3951d442370c
      }
  }
  
--/* PALETA NEUTRA (será sobrescrita depois via config.js, se quiser) */
--:root {
--    --color-primary: #555555;   /* antes vermelho Fast Car */
--    --color-dark: #222222;
--    --color-light: #ffffff;     /* fundo geral */
--    --color-text: #333333;
--    --color-border: #dddddd;
--    --color-success: #27ae60;
--    --color-error: #e74c3c;
--    --color-warning: #f39c12;
--}
--
+/* PALETA NEUTRA (será sobrescrita depois via config.js, se quiser) */
+:root {
+    --color-primary: #555555;   /* antes vermelho Fast Car */
+    --color-dark: #222222;
+    --color-light: #ffffff;     /* fundo geral */
+    --color-text: #333333;
+    --color-border: #dddddd;
+    --color-success: #27ae60;
+    --color-error: #e74c3c;
+    --color-warning: #f39c12;
+}
+
  * {
      margin: 0;
      padding: 0;
@@ -109,52 +103,52 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..e4161d46ff565fa3e84c3951d442370c
  }
  
  
--.checkbox-item label {
--    margin: 0;
--    font-weight: 400;
--    cursor: pointer;
--    font-size: 13px;
--}
-+.checkbox-item label {
-+    margin: 0;
-+    font-weight: 400;
-+    cursor: pointer;
-+    font-size: 13px;
-+}
-+
-+/* --- TOGGLE DE TIPO (PEÇA/SERVIÇO) --- */
-+.tipo-item-toggle {
-+    display: flex;
-+    gap: 10px;
-+    flex-wrap: wrap;
-+    margin-top: 6px;
-+}
-+.tipo-item-toggle input[type="radio"] {
-+    position: absolute;
-+    opacity: 0;
-+    pointer-events: none;
-+}
-+.tipo-item-option {
-+    display: inline-flex;
-+    align-items: center;
-+    justify-content: center;
-+    padding: 10px 16px;
-+    border-radius: 8px;
-+    border: 2px solid var(--color-border);
-+    background: #f8f9fa;
-+    font-weight: 600;
-+    font-size: 13px;
-+    color: #555;
-+    cursor: pointer;
-+    transition: all 0.2s ease;
-+    user-select: none;
-+}
-+.tipo-item-toggle input[type="radio"]:checked + .tipo-item-option {
-+    background: var(--color-primary);
-+    color: #fff;
-+    border-color: var(--color-primary);
-+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-+}
+.checkbox-item label {
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+    font-size: 13px;
+}
+.checkbox-item label {
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* --- TOGGLE DE TIPO (PEÇA/SERVIÇO) --- */
+.tipo-item-toggle {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.tipo-item-toggle input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.tipo-item-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid var(--color-border);
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 13px;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.tipo-item-toggle input[type="radio"]:checked + .tipo-item-option {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
  
  .equip-section {
      margin-bottom: 30px;
@@ -206,80 +200,80 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..e4161d46ff565fa3e84c3951d442370c
  text-align: left;
  }
  
--.os-table td:last-child {
--    text-align: right;
--    width: 70px;
--    font-weight: 600;
--}
-+.os-table td:last-child {
-+    text-align: right;
-+    width: 70px;
-+    font-weight: 600;
-+}
-+
-+.os-table-compact {
-+    font-size: 10px;
-+}
-+.os-table-compact th,
-+.os-table-compact td {
-+    padding: 4px;
-+}
+.os-table td:last-child {
+    text-align: right;
+    width: 70px;
+    font-weight: 600;
+}
+.os-table td:last-child {
+    text-align: right;
+    width: 70px;
+    font-weight: 600;
+}
+
+.os-table-compact {
+    font-size: 10px;
+}
+.os-table-compact th,
+.os-table-compact td {
+    padding: 4px;
+}
  
  /* Total e Rodapé */
--.os-total-row {
--    margin-top: 15px;
--    background: #eee;
--    padding: 10px 15px;
--    border-radius: 6px;
--    display: flex;
--    justify-content: space-between;
--    align-items: center;
--    font-weight: 800;
--}
--.os-total-value {
--    font-size: 18px;
--    color: var(--color-success); /* Verde Sucesso */
--}
--
--.os-total-row::before {
--    content: "";
--    display: block;
--    height: 0;
--    page-break-before: always;
--    margin-top: -20px;
--}
-+.os-total-row {
-+    margin-top: 15px;
-+    background: #eee;
-+    padding: 10px 15px;
-+    border-radius: 6px;
-+    display: flex;
-+    justify-content: space-between;
-+    align-items: center;
-+    font-weight: 800;
-+}
-+.os-total-value {
-+    font-size: 18px;
-+    color: var(--color-success); /* Verde Sucesso */
-+}
-+
-+.os-subtotal-row {
-+    margin-top: 10px;
-+    background: #f7f7f7;
-+    padding: 8px 12px;
-+    border-radius: 6px;
-+    display: flex;
-+    justify-content: space-between;
-+    align-items: center;
-+    font-weight: 700;
-+    font-size: 12px;
-+}
-+.os-subtotal-pecas span:last-child {
-+    color: #e41616;
-+}
-+.os-subtotal-servicos span:last-child {
-+    color: #0056b3;
-+}
+.os-total-row {
+    margin-top: 15px;
+    background: #eee;
+    padding: 10px 15px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 800;
+}
+.os-total-value {
+    font-size: 18px;
+    color: var(--color-success); /* Verde Sucesso */
+}
+
+.os-total-row::before {
+    content: "";
+    display: block;
+    height: 0;
+    page-break-before: always;
+    margin-top: -20px;
+}
+.os-total-row {
+    margin-top: 15px;
+    background: #eee;
+    padding: 10px 15px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 800;
+}
+.os-total-value {
+    font-size: 18px;
+    color: var(--color-success); /* Verde Sucesso */
+}
+
+.os-subtotal-row {
+    margin-top: 10px;
+    background: #f7f7f7;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+.os-subtotal-pecas span:last-child {
+    color: #e41616;
+}
+.os-subtotal-servicos span:last-child {
+    color: #0056b3;
+}
  
  
  .os-assinaturas {
@@ -305,7 +299,7 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..e4161d46ff565fa3e84c3951d442370c
  
  /* Utilitários */
  .mt-10 { margin-top: 15px; }
-@@ -1129,30 +1168,26 @@ text-align: left;
+ -1129,30 +1168,26 @@ text-align: left;
  }
  
  /* Passos (Esconde os inativos) */
@@ -331,11 +325,4 @@ index 6ea6aaae542387f01bb632c46debccd1887b0de2..e4161d46ff565fa3e84c3951d442370c
      justify-content: flex-end;
  }
  
--</style>
--
--
--
- 
- 
-EOF
-)
+</style>
