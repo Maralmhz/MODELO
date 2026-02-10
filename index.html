@@ -6,12 +6,13 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="description" content="Checklist de Oficina - App Offline com PDF">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="theme.css">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" type="image/png" href="logo.png">
    <title id="titulo-pagina">Checklist de Entrada – Oficina</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- MÓDULO FIREBASE -->
+    <script type="module" src="firebase_app.js"></script>
 </head>
 <body>
     <div class="container">
@@ -40,7 +41,7 @@
                     <span id="syncText">Online</span>
                 </div>
             </div>
-            <div class="header-badge">v3.0 PRO</div>
+            <div class="header-badge">v3.1 PRO</div>
         </div>
 <div class="tabs">
     <button class="tab-button active" onclick="switchTab('novo-checklist')">➕ Novo Checklist</button>
@@ -335,6 +336,8 @@
             <div class="content">
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="🔍 Buscar por placa, modelo ou cliente..." onkeyup="filtrarChecklists()">
+                     <!-- BOTÃO SINCRONIZAR AQUI -->
+                    <button class="btn-primary btn-small" id="btnSync" onclick="sincronizarChecklists()" style="background-color: #27ae60;">🔄 Sincronizar Nuvem</button>
                     <button class="btn-secondary btn-small" onclick="ordenarChecklists()">📊 Ordenar</button>
                 </div>
 
@@ -398,17 +401,18 @@
                     </div>
                 </div>
 
-              <!-- DENTRO DA DIV #orcamento -->
-
-<!-- 1. Adicione a seleção de Tipo (Peça ou Serviço) no formulário -->
 <div class="form-row">
     <div class="form-group">
         <label>Tipo do Item:</label>
-        <div class="tipo-item-toggle">
-            <input type="radio" id="tipoPeca" name="tipoItem" value="peca" checked>
-            <label for="tipoPeca" class="tipo-item-option">Peça</label>
-            <input type="radio" id="tipoServico" name="tipoItem" value="servico">
-            <label for="tipoServico" class="tipo-item-option">Serviço</label>
+        <div class="checkbox-group" style="margin-top: 5px;">
+            <div class="checkbox-item">
+                <input type="radio" id="tipoPeca" name="tipoItem" value="peca" checked>
+                <label for="tipoPeca">Peça</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="radio" id="tipoServico" name="tipoItem" value="servico">
+                <label for="tipoServico">Serviço</label>
+            </div>
         </div>
     </div>
 </div>
@@ -433,11 +437,9 @@
     </div>
 </div>
 
-<!-- 2. Substitua a tabela antiga por DUAS tabelas novas -->
 <div style="margin-top:20px;">
     
-    <!-- SEÇÃO DE PEÇAS -->
-    <h4 style="border-bottom: 2px solid #e41616; padding-bottom: 5px; color: #333;">🔩 Peças</h4>
+    <h4 style="border-bottom: 2px solid #0056b3; padding-bottom: 5px; color: #333;">🔩 Peças</h4>
     <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom: 10px;">
         <thead>
             <tr style="background:#f7f7f7;">
@@ -450,14 +452,13 @@
         <tfoot>
             <tr>
                 <td style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold;">Total Peças:</td>
-                <td id="totalPecas" style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold; color: #e41616;">R$ 0,00</td>
+                <td id="totalPecas" style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold; color: #0056b3;">R$ 0,00</td>
                 <td></td>
             </tr>
         </tfoot>
     </table>
 
-    <!-- SEÇÃO DE SERVIÇOS -->
-    <h4 style="border-bottom: 2px solid #0056b3; padding-bottom: 5px; color: #333; margin-top: 25px;">🔧 Serviços</h4>
+    <h4 style="border-bottom: 2px solid #e41616; padding-bottom: 5px; color: #333; margin-top: 25px;">🔧 Serviços</h4>
     <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom: 10px;">
         <thead>
             <tr style="background:#f7f7f7;">
@@ -470,13 +471,12 @@
         <tfoot>
             <tr>
                 <td style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold;">Total Serviços:</td>
-                <td id="totalServicos" style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold; color: #0056b3;">R$ 0,00</td>
+                <td id="totalServicos" style="border:1px solid #ddd; padding:6px; text-align:right; font-weight:bold; color: #e41616;">R$ 0,00</td>
                 <td></td>
             </tr>
         </tfoot>
     </table>
 
-    <!-- TOTAL GERAL (SOMA DOS DOIS) -->
     <div style="background: #eee; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: right;">
         <span style="font-size: 14px; font-weight: bold; color: #555;">TOTAL GERAL (Peças + Serviços):</span>
         <div id="totalGeralFinal" style="font-size: 24px; font-weight: bold; color: #28a745;">R$ 0,00</div>
@@ -488,12 +488,24 @@
                 </div>
             </div>
         </div>
-<!-- ABA FOTOS ✅ PERFEITA -->
 <div id="fotos" class="tab-content">
     <div class="content">
         <div class="section-title">📸 FOTOS DO VEÍCULO</div>
+
+        <div style="
+            background-color: #fff3cd; 
+            border: 1px solid #ffeeba; 
+            color: #856404; 
+            padding: 15px; 
+            border-radius: 6px; 
+            margin-bottom: 20px; 
+            text-align: center;
+            font-size: 14px;
+        ">
+            <strong>⚠️ Atenção:</strong> As fotos são salvas <u>apenas neste dispositivo</u>!<br>
+            Para backup, envie para o <strong>WhatsApp</strong> ou salve no <strong>Google Drive</strong>.
+        </div>
         
-        <!-- RESUMO VEÍCULO -->
         <div class="veiculo-resumo" id="resumoVeiculoFotos">
             <div class="veiculo-resumo-pill">Placa: <strong id="resumoPlaca3">-</strong></div>
             <div class="veiculo-resumo-pill">Modelo: <strong id="resumoModelo3">-</strong></div>
@@ -501,7 +513,6 @@
             <div class="veiculo-resumo-pill">KM: <strong id="resumoKmFotos">-</strong></div>
         </div>
 
-        <!-- BOTÕES -->
         <div class="form-row">
             <div class="form-group">
                 <button type="button" class="btn-primary" onclick="iniciarCamera()">📷 Tirar Foto</button>
@@ -512,7 +523,6 @@
             </div>
         </div>
 
-        <!-- CÂMERA -->
         <div class="camera-container" style="display:none;">
             <video id="cameraPreview" autoplay playsinline style="width:100%; max-width:400px; height:300px; border-radius:12px; border:3px solid #e41616; background:#000;"></video>
             <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
@@ -521,7 +531,6 @@
             </div>
         </div>
 
-        <!-- GALERIA -->
         <div class="section-title">Galeria de Fotos (Máx 15)</div>
         <div id="galeriaFotos" class="fotos-grid"></div>
 
@@ -533,17 +542,12 @@
 </div>
 
     </div>
-<!-- ========================================== -->
-<!-- NOVA ABA: RESUMO (DOCUMENTO DE IMPRESSÃO) -->
-<!-- ========================================== -->
 <div id="resumo" class="tab-content">
   <div class="content">
     
-    <!-- ÁREA QUE SERÁ IMPRESSA (A FOLHA) -->
     <div id="resumoContainer" class="os-paper">
       
-      <!-- CABEÇALHO -->
-      <div class="os-header">
+      <div id="template-cabecalho" class="os-header">
         <div class="os-header-left">
           <img id="logoResumo" src="" alt="Logo" class="os-logo">
           <div class="os-empresa-dados">
@@ -562,7 +566,6 @@
         </div>
       </div>
 
-      <!-- DADOS CLIENTE E VEÍCULO (LADO A LADO) -->
       <div class="os-grid-2">
         <div class="os-box">
           <div class="os-box-title">CLIENTE</div>
@@ -579,107 +582,59 @@
         </div>
       </div>
 
-      <!-- SERVIÇOS SOLICITADOS -->
       <div class="os-box mt-10">
         <div class="os-box-title">SERVIÇOS SOLICITADOS</div>
         <div id="rServicos" class="os-text-area"></div>
       </div>
 
-      <!-- INSPEÇÃO (CHECKLIST) - SÓ O QUE MARCOU -->
       <div class="os-box mt-10">
         <div class="os-box-title">INSPEÇÃO DE ENTRADA</div>
         <div id="rChecklistBadges" class="os-badges-area">
-          <!-- O Javascript vai preencher aqui -->
         </div>
       </div>
         
-<!-- OBSERVAÇÕES DA INSPEÇÃO -->
 <div class="os-box mt-10">
     <div class="os-box-title">OBSERVAÇÕES DA INSPEÇÃO</div>
     <div id="rObsInspecao" class="os-text-area">-</div>
 </div>
 
-       <!-- ASSINATURAS -->
-      <div class="os-assinaturas">
+       <div id="template-assinaturas" class="os-assinaturas">
         <div class="os-assina-box">Assinatura do Cliente</div>
         <div class="os-assina-box">Assinatura do Técnico</div>
       </div>
 
-   <!-- RODAPÉ PÁGINA 1 -->
 <div class="os-footer">
     <span id="rodape-texto-1">Carregando...</span>
 </div>
 
 <div class="force-page-break"></div>
 
-<!-- CABEÇALHO REPETIDO NA PÁGINA 2 -->
-<div class="os-header">
-    <div class="os-header-left">
-        <img id="logoResumo2" src="" alt="Logo" class="os-logo">
-        <div class="os-empresa-dados">
-            <div id="nomeOficinaResumo2" class="os-oficina-nome">NOME DA OFICINA</div>
-            <div id="enderecoOficinaResumo2" class="os-oficina-sub">Endereço da oficina</div>
-<div class="os-oficina-sub">
-    <img src="whatsapp.png" alt="WhatsApp" class="whatsapp-icon">
-    <span id="telefoneOficinaResumo2">00 00000-0000</span>
-</div>
-            <div id="cnpjOficinaResumo2" class="os-oficina-sub">CNPJ da oficina</div>
-        </div>
-    </div>
-    <div class="os-header-right">
-        <div class="os-label-os">ORDEM DE SERVIÇO</div>
-        <div id="osNumero2" class="os-numero-os">00000000</div>
-    </div>
+
+<div class="os-header" id="header-pag2">
 </div>
 
-      <!-- TABELAS DE PEÇAS E SERVIÇOS (MESMA PÁGINA) -->
-      <div class="os-grid-2 mt-10">
-         <div>
-            <div class="os-table-header" style="border-bottom: 2px solid #e41616;">PEÇAS</div>
-            <table class="os-table os-table-compact" id="rTabelaPecas">
-              <!-- O Javascript vai preencher aqui -->
-            </table>
-            <div class="os-subtotal-row os-subtotal-pecas">
-               <span>Total Peças:</span>
-               <span id="rTotalPecas">R$ 0,00</span>
-            </div>
-         </div>
-         <div>
-            <div class="os-table-header" style="border-bottom: 2px solid #0056b3;">SERVIÇOS</div>
-            <table class="os-table os-table-compact" id="rTabelaServicos">
-              <!-- O Javascript vai preencher aqui -->
-            </table>
-            <div class="os-subtotal-row os-subtotal-servicos">
-               <span>Total Serviços:</span>
-               <span id="rTotalServicos">R$ 0,00</span>
-            </div>
-         </div>
-      </div>
+<div id="containerTabelasOrcamento">
+</div>
 
-      <!-- TOTAL GERAL -->
       <div class="os-total-row">
         <span>TOTAL GERAL:</span>
         <span id="rTotalGeral" class="os-total-value">R$ 0,00</span>
       </div>
-
- <!-- ASSINATURAS PÁGINA 2 -->
-<div class="os-assinaturas">
+        
+<div class="os-assinaturas" id="assinaturas-pag2">
     <div class="os-assina-box">Assinatura do Cliente</div>
     <div class="os-assina-box">Assinatura do Técnico</div>
 </div>
 
-        <!-- RODAPÉ PÁGINA 2 -->
 <div class="os-footer">
     <span id="rodape-texto-2">Carregando...</span>
 </div>
 
 
 
-    </div> <!-- FIM DA FOLHA -->
+    </div>
 
-    <!-- BOTÕES DE AÇÃO DA ABA RESUMO -->
-    <div class="action-buttons">
-      <button type="button" class="btn-secondary" onclick="imprimirResumo()">🖨️ Imprimir</button>
+<div class="action-buttons no-pdf">
       <button type="button" class="btn-success" onclick="gerarPDFResumo()">📥 Baixar PDF</button>
        <button type="button" class="btn-primary" onclick="salvarChecklist()" style="background: #27ae60 !important;">💾 Salvar Completo</button>
     </div>
@@ -687,17 +642,11 @@
   </div>
 </div>
 
-    <script src="config.js"></script>
-    <script src="app.js"></script>
-    <script type="module" src="firebase.js"></script>
-    <script src="main.js"></script>
-    <script src="orcamento.js"></script>
-    <script src="resumo-veiculo.js"></script>
-    <script src="fotos.js"></script>
-    <script src="resumo.js"></script>
-    <script src="form-nav.js"></script>
-
-    <!-- RODAPÉ FIXO -->
+<!-- CARREGA TODA A LÓGICA DO ARQUIVO EXTERNO -->
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="checklist.js"></script>
+    
 <div class="os-footer" id="rRodape" style="position: fixed; bottom: 0; left: 0; right: 0; width: 100%; text-align: center; font-size: 10px; background: #f8f9fa; padding: 8px 12px; border-top: 2px solid var(--color-primary); z-index: 9999; box-sizing: border-box; font-family: Arial, sans-serif;">
     <span id="rodape-texto">Developed by Hallz Branding 3199676-6963</span>
 </div>
