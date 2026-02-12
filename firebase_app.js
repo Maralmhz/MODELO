@@ -1,4 +1,4 @@
-// firebase_app.js (Realtime Database + Auth + 1 sessão por vez)
+// firebase_app.js (Realtime Database + Auth + 1 sessão por vez - simples e estável)
 import { auth, db } from "./firebase.js";
 
 import {
@@ -45,8 +45,8 @@ document.getElementById("btnLogin")?.addEventListener("click", async () => {
   }
 });
 
-// ===== Sessão única =====
-const STALE_LOCK_MS = 2 * 60 * 1000; // 2 min
+// ===== 1 sessão por usuário =====
+const STALE_LOCK_MS = 2 * 60 * 1000; // 2 min (lock velho = assume)
 
 function newSessionId() {
   return crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
@@ -64,7 +64,6 @@ async function tryAcquireLock(uid, mySessionId) {
   const v = snap.val() || {};
   if (v.sessionId === mySessionId) return { ok: true };
 
-  // lock antigo (provável preso) -> assume sem perguntar
   const ts = Number(v.ts || 0);
   if (ts && (Date.now() - ts) > STALE_LOCK_MS) {
     await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
@@ -81,14 +80,13 @@ async function forceAcquireLock(uid, mySessionId) {
 
 function enforceSingleSession(uid) {
   const mySessionId = newSessionId();
-
   const lockRef = ref(db, `sessions/${uid}`);
   const connectedRef = ref(db, ".info/connected");
 
   let onDisconnectArmed = false;
   let hasLock = false;
 
-  // Se alguém assumir depois, você é desconectado (só se você já tinha lock)
+  // Se alguém trocar o lock depois que eu já era dono, eu saio
   onValue(lockRef, async (snap) => {
     const v = snap.val();
     if (!v) return;
@@ -101,14 +99,14 @@ function enforceSingleSession(uid) {
     }
   });
 
-  // Quando conectar no RTDB: arma onDisconnect e tenta pegar lock
+  // Quando conectar: arma onDisconnect e tenta adquirir lock
   onValue(connectedRef, async (snap) => {
     if (snap.val() !== true) return;
 
-    // armar onDisconnect quando estiver conectado
     if (!onDisconnectArmed) {
       onDisconnectArmed = true;
-      await onDisconnect(lockRef).remove(); // presença [web:90]
+      // presença: remove o lock quando a conexão cair/aba fechar [web:90][web:91]
+      await onDisconnect(lockRef).remove();
     }
 
     const res = await tryAcquireLock(uid, mySessionId);
@@ -117,7 +115,6 @@ function enforceSingleSession(uid) {
       return;
     }
 
-    // existe outra sessão -> pergunta
     const ok = confirm(
       "Esta conta já está em uso em outro dispositivo.\n\n" +
       "Quer entrar aqui mesmo assim? (isso vai desconectar o outro dispositivo)"
