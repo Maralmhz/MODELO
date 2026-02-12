@@ -1,48 +1,40 @@
-// COLE ISSO (substitui tudo):
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, set, onDisconnect, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const firebaseConfig = {
-  // SUA CONFIG AQUI (pegue no Console → Project Settings → SDK)
+  // SUA CONFIG AQUI
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const db = getDatabase(app);
 
-const loginBox = document.getElementById('loginBox');
-const appWrap = document.getElementById('appWrap');
-const loginMsg = document.getElementById('loginMsg');
+// 1 USUÁRIO POR VEZ (browser fingerprint)
+const userId = 'oficina-' + Math.random().toString(36).substr(2, 9) + Date.now();
+const sessionRef = ref(db, `sessions/${userId}`);
+const STALE_LOCK_MS = 300000; // 5min
 
-// LOGIN SIMPLES (senha fixa "123456")
-document.getElementById('btnLogin')?.addEventListener('click', () => {
-  const email = document.getElementById('loginEmail').value;
-  const senha = document.getElementById('loginSenha').value;
-  
-  if (senha === '123456') {
-    localStorage.setItem('tempUser', email);
-    appWrap.style.display = 'block';
-    loginBox.style.display = 'none';
-  } else {
-    loginMsg.textContent = 'Senha: 123456';
-    loginMsg.style.color = '#b00020';
+// Tenta conectar
+set(sessionRef, {
+  userId: userId,
+  ts: serverTimestamp(),
+  active: true
+}).then(() => {
+  onDisconnect(sessionRef).remove();
+}).catch(() => {
+  document.body.innerHTML = '<h1 style="text-align:center;margin-top:100px;color:red;">👥 OFICINA OCUPADA<br><small>Tente em 1 minuto ou feche outras abas</small></h1>';
+  document.body.style.background = '#fee';
+});
+
+// Monitora expulsão
+onValue(sessionRef, (snap) => {
+  if (!snap.exists()) {
+    document.body.innerHTML = '<h1 style="text-align:center;margin-top:100px;color:red;">🔒 Sessão expirada<br><small>Recarregue a página</small></h1>';
   }
 });
 
-// ESQUECI SENHA (remove msg erro)
-document.getElementById('btnForgotPassword')?.addEventListener('click', () => {
-  loginMsg.textContent = 'Senha é 123456 (temporário)';
-  loginMsg.style.color = '#1976d2';
-});
-
-// LEMBRAR-ME (só visual)
-document.getElementById('rememberMe')?.addEventListener('change', (e) => {
-  localStorage.setItem('rememberMe', e.target.checked);
-});
-
-// MOSTRA UI
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    appWrap.style.display = 'block';
-    loginBox.style.display = 'none';
-  }
-});
+// Status online (visual)
+const statusEl = document.getElementById('syncStatus');
+if (statusEl) {
+  statusEl.style.background = '#10b981';
+  document.getElementById('syncText').textContent = 'Online';
+}
