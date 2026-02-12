@@ -1,4 +1,4 @@
-// firebase_app.js (Realtime Database + Auth + 1 sessão por vez)
+// firebase_app.js (Realtime Database + Auth + 1 sessão por vez - PC + celular)
 import { auth, db } from "./firebase.js";
 
 import {
@@ -46,28 +46,46 @@ document.getElementById("btnLogin")?.addEventListener("click", async () => {
 });
 
 // ===== 1 sessão por usuário =====
+const STALE_LOCK_MS = 2 * 60 * 1000; // 2 min (ajuste se quiser)
+
 function newSessionId() {
   return crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
 }
 
-async function tryAcquireLock(uid, mySessionId) {
+async function readLock(uid) {
   const lockRef = ref(db, `sessions/${uid}`);
   const snap = await get(lockRef);
+  return { exists: snap.exists(), val: snap.val(), lockRef };
+}
 
-  if (!snap.exists()) {
-    await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
+async function writeLock(lockRef, mySessionId) {
+  await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
+}
+
+async function tryAcquireLock(uid, mySessionId) {
+  const { exists, val, lockRef } = await readLock(uid);
+
+  if (!exists) {
+    await writeLock(lockRef, mySessionId);
     return { ok: true };
   }
 
-  const v = snap.val();
-  if (v?.sessionId === mySessionId) return { ok: true };
+  const v = val || {};
+  if (v.sessionId === mySessionId) return { ok: true };
+
+  // lock velho (provável travado): pega sem perguntar
+  const ts = Number(v.ts || 0);
+  if (ts && (Date.now() - ts) > STALE_LOCK_MS) {
+    await writeLock(lockRef, mySessionId);
+    return { ok: true, stale: true, previous: v };
+  }
 
   return { ok: false, current: v };
 }
 
 async function forceAcquireLock(uid, mySessionId) {
   const lockRef = ref(db, `sessions/${uid}`);
-  await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
+  await writeLock(lockRef, mySessionId);
 }
 
 function enforceSingleSession(uid) {
@@ -76,9 +94,9 @@ function enforceSingleSession(uid) {
   const connectedRef = ref(db, ".info/connected");
 
   let onDisconnectArmed = false;
-  let hasLock = false; // só expulsa se eu realmente assumi o lock
+  let hasLock = false;
 
-  // Se alguém assumir depois, você é desconectado (mas só se você já era dono)
+  // 1) Quem é o dono agora? (se eu era dono e trocaram, eu saio)
   onValue(lockRef, async (snap) => {
     const v = snap.val();
     if (!v) return;
@@ -91,25 +109,23 @@ function enforceSingleSession(uid) {
     }
   });
 
-  // presença/conexão: arma onDisconnect e tenta pegar a trava
+  // 2) Quando conectar no RTDB, arma onDisconnect e tenta pegar lock
   onValue(connectedRef, async (snap) => {
     if (snap.val() !== true) return;
 
-    // IMPORTANTÍSSIMO: armar onDisconnect quando estiver conectado
+    // Recomendação: armar onDisconnect quando ficar online
     if (!onDisconnectArmed) {
       onDisconnectArmed = true;
-      // limpa o lock quando perder conexão/fechar aba
-      await onDisconnect(lockRef).remove();
+      await onDisconnect(lockRef).remove(); // remove ao desconectar/fechar [web:90][web:91]
     }
 
-    // tenta pegar a trava
     const res = await tryAcquireLock(uid, mySessionId);
     if (res.ok) {
       hasLock = true;
       return;
     }
 
-    // já existe outra sessão -> BLOQUEIA e PERGUNTA
+    // existe outra sessão ativa -> pergunta
     const ok = confirm(
       "Esta conta já está em uso em outro dispositivo.\n\n" +
       "Quer entrar aqui mesmo assim? (isso vai desconectar o outro dispositivo)"
@@ -122,7 +138,6 @@ function enforceSingleSession(uid) {
       return;
     }
 
-    // usuário escolheu SIM -> assume a sessão
     await forceAcquireLock(uid, mySessionId);
     hasLock = true;
   });
@@ -141,7 +156,7 @@ export async function buscarChecklistsNuvem() {
   if (!snap.exists()) return [];
 
   const obj = snap.val();
-  return Object.values(obj); // {id: checklist} -> [checklist]
+  return Object.values(obj);
 }
 
 export async function salvarNoFirebase(checklist) {
@@ -159,7 +174,7 @@ export async function excluirChecklistNuvem(id) {
   await remove(ref(db, `${userPath(user.uid)}/${String(id)}`));
 }
 
-// ===== Gate do app: só aparece logado =====
+// ===== Gate do app =====
 let sessionStarted = false;
 
 onAuthStateChanged(auth, (user) => {
