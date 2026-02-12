@@ -64,10 +64,14 @@ async function enforceSingleSession(uid) {
   });
 
 
-  // Se outro dispositivo sobrescrever sessionId, desloga este
+  // Se outro dispositivo sobrescrever sessionId, desloga este (com filtro anti “sessão fantasma”)
   onValue(sessionRef, async (snap) => {
     const v = snap.val();
     if (!v) return;
+
+    // ignora sessões antigas (evita derrubar por registro velho)
+    if (v.ts && (Date.now() - v.ts) > 10000) return;
+
     if (v.sessionId !== mySessionId) {
       alert("Esta conta foi aberta em outro dispositivo. Você foi desconectado.");
       await signOut(auth);
@@ -75,6 +79,7 @@ async function enforceSingleSession(uid) {
     }
   });
 }
+
 
 // ===== API esperada pelo checklist.js =====
 // Salva e busca no caminho do usuário logado
