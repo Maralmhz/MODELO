@@ -1,4 +1,4 @@
-// firebase_app.js (Realtime Database + Auth + sessão única com confirmação)
+// firebase_app.js (Realtime Database + Auth + 1 sessão por vez)
 import { auth, db } from "./firebase.js";
 
 import {
@@ -37,8 +37,7 @@ document.getElementById("btnLogin")?.addEventListener("click", async () => {
   const senha = document.getElementById("loginSenha").value;
 
   try {
-    // lembrar login neste aparelho
-    await setPersistence(auth, browserLocalPersistence); // [web:241]
+    await setPersistence(auth, browserLocalPersistence);
     await signInWithEmailAndPassword(auth, email, senha);
   } catch (e) {
     showLogin("Email ou senha inválidos.");
@@ -46,7 +45,7 @@ document.getElementById("btnLogin")?.addEventListener("click", async () => {
   }
 });
 
-// ===== Sessão única =====
+// ===== 1 sessão por usuário =====
 function newSessionId() {
   return crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
 }
@@ -61,7 +60,7 @@ async function tryAcquireLock(uid, mySessionId) {
   }
 
   const v = snap.val();
-  if (v.sessionId === mySessionId) return { ok: true };
+  if (v?.sessionId === mySessionId) return { ok: true };
 
   return { ok: false, current: v };
 }
@@ -73,33 +72,51 @@ async function forceAcquireLock(uid, mySessionId) {
 
 function enforceSingleSession(uid) {
   const mySessionId = newSessionId();
-
   const lockRef = ref(db, `sessions/${uid}`);
   const connectedRef = ref(db, ".info/connected");
 
   let onDisconnectArmed = false;
+  let hasLock = false; // só expulsa se eu realmente assumi o lock
 
-  // roda quando a conexão com o RTDB estiver ativa (presença)
+  // Se alguém assumir depois, você é desconectado (mas só se você já era dono)
+  onValue(lockRef, async (snap) => {
+    const v = snap.val();
+    if (!v) return;
+
+    if (hasLock && v.sessionId !== mySessionId) {
+      alert("Sua sessão foi encerrada porque a conta foi aberta em outro dispositivo.");
+      hasLock = false;
+      await signOut(auth);
+      showLogin("Sessão encerrada.");
+    }
+  });
+
+  // presença/conexão: arma onDisconnect e tenta pegar a trava
   onValue(connectedRef, async (snap) => {
     if (snap.val() !== true) return;
 
-    // registra onDisconnect apenas quando estiver conectado
+    // IMPORTANTÍSSIMO: armar onDisconnect quando estiver conectado
     if (!onDisconnectArmed) {
       onDisconnectArmed = true;
-      await onDisconnect(lockRef).remove(); // [web:90]
+      // limpa o lock quando perder conexão/fechar aba
+      await onDisconnect(lockRef).remove();
     }
 
     // tenta pegar a trava
     const res = await tryAcquireLock(uid, mySessionId);
-    if (res.ok) return;
+    if (res.ok) {
+      hasLock = true;
+      return;
+    }
 
-    // já existe sessão -> BLOQUEIA e PERGUNTA
+    // já existe outra sessão -> BLOQUEIA e PERGUNTA
     const ok = confirm(
       "Esta conta já está em uso em outro dispositivo.\n\n" +
       "Quer entrar aqui mesmo assim? (isso vai desconectar o outro dispositivo)"
     );
 
     if (!ok) {
+      hasLock = false;
       await signOut(auth);
       showLogin("Acesso bloqueado: conta em uso em outro dispositivo.");
       return;
@@ -107,18 +124,7 @@ function enforceSingleSession(uid) {
 
     // usuário escolheu SIM -> assume a sessão
     await forceAcquireLock(uid, mySessionId);
-  });
-
-  // se alguém assumir depois, você é desconectado
-  onValue(lockRef, async (snap) => {
-    const v = snap.val();
-    if (!v) return;
-
-    if (v.sessionId !== mySessionId) {
-      alert("Sua sessão foi encerrada porque a conta foi aberta em outro dispositivo.");
-      await signOut(auth);
-      showLogin("Sessão encerrada.");
-    }
+    hasLock = true;
   });
 }
 
@@ -135,7 +141,7 @@ export async function buscarChecklistsNuvem() {
   if (!snap.exists()) return [];
 
   const obj = snap.val();
-  return Object.values(obj);
+  return Object.values(obj); // {id: checklist} -> [checklist]
 }
 
 export async function salvarNoFirebase(checklist) {
@@ -153,7 +159,7 @@ export async function excluirChecklistNuvem(id) {
   await remove(ref(db, `${userPath(user.uid)}/${String(id)}`));
 }
 
-// ===== Gate do app =====
+// ===== Gate do app: só aparece logado =====
 let sessionStarted = false;
 
 onAuthStateChanged(auth, (user) => {
