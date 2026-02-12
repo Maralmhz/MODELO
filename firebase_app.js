@@ -1,93 +1,116 @@
-// firebase_app.js
-// Adaptador para usar GitHub Gist como "backend", já que o checklist.js espera essa interface.
+// firebase_app.js (Realtime Database + Auth + 1 sessão por vez)
+import { auth, db } from "./firebase.js";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+import {
+  ref,
+  get,
+  set,
+  remove,
+  onValue,
+  onDisconnect
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+// ===== UI helpers =====
+function showLogin(msg = "") {
+  document.getElementById("loginBox").style.display = "block";
+  document.getElementById("appWrap").style.display = "none";
+  document.getElementById("loginMsg").textContent = msg;
+}
+
+function showApp() {
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("appWrap").style.display = "block";
+  document.getElementById("loginMsg").textContent = "";
+}
+
+// ===== LOGIN button =====
+document.getElementById("btnLogin")?.addEventListener("click", async () => {
+  const email = document.getElementById("loginEmail").value.trim();
+  const senha = document.getElementById("loginSenha").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+  } catch (e) {
+    showLogin("Email ou senha inválidos.");
+    console.error(e);
+  }
+});
+
+// ===== 1 sessão por usuário =====
+function newSessionId() {
+  return crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+}
+
+async function enforceSingleSession(uid) {
+  const mySessionId = newSessionId();
+
+  const sessionRef = ref(db, `sessions/${uid}`);
+  const connectedRef = ref(db, ".info/connected");
+
+  // Quando conectar, registra minha sessão e agenda remoção no disconnect
+  onValue(connectedRef, async (snap) => {
+    if (snap.val() !== true) return;
+    await set(sessionRef, { sessionId: mySessionId, ts: Date.now() });
+    await onDisconnect(sessionRef).remove();
+  });
+
+  // Se outro dispositivo sobrescrever sessionId, desloga este
+  onValue(sessionRef, async (snap) => {
+    const v = snap.val();
+    if (!v) return;
+    if (v.sessionId !== mySessionId) {
+      alert("Esta conta foi aberta em outro dispositivo. Você foi desconectado.");
+      await signOut(auth);
+      showLogin("Conta em uso em outro dispositivo.");
+    }
+  });
+}
+
+// ===== API esperada pelo checklist.js =====
+// Salva e busca no caminho do usuário logado
+function userPath(uid) {
+  return `clientes/${uid}/checklists`;
+}
 
 export async function buscarChecklistsNuvem() {
-    try {
-        const config = window.CLOUD_CONFIG;
-        if (!config || !config.GIST_ID || !config.TOKEN) {
-            console.warn("Configuração de nuvem (Gist) não encontrada.");
-            return [];
-        }
+  const user = auth.currentUser;
+  if (!user) return [];
 
-        const url = `https://api.github.com/gists/${config.GIST_ID}`;
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `token ${config.TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
+  const snap = await get(ref(db, userPath(user.uid)));
+  if (!snap.exists()) return [];
 
-        if (!response.ok) {
-            console.error("Erro ao buscar Gist:", response.statusText);
-            return [];
-        }
-
-        const data = await response.json();
-        const filename = config.FILENAME || 'checklist_backup.json';
-        
-        if (data.files && data.files[filename]) {
-            const content = data.files[filename].content;
-            return JSON.parse(content || '[]');
-        }
-        
-        return [];
-    } catch (error) {
-        console.error("Erro na busca nuvem:", error);
-        throw error; // Repassa o erro para o checklist.js tratar
-    }
+  const obj = snap.val();
+  return Object.values(obj); // {id: checklist} -> [checklist]
 }
 
 export async function salvarNoFirebase(checklist) {
-    // Nota: O nome da função é mantido para compatibilidade com o checklist.js existente,
-    // mas a implementação salva no GitHub Gist.
-    try {
-        const config = window.CLOUD_CONFIG;
-        if (!config || !config.GIST_ID || !config.TOKEN) {
-            console.warn("Configuração de nuvem (Gist) não encontrada. Salvamento ignorado.");
-            return;
-        }
+  const user = auth.currentUser;
+  if (!user) throw new Error("Não autenticado.");
 
-        // 1. Buscar dados atuais para não sobrescrever
-        const dadosAtuais = await buscarChecklistsNuvem();
-        
-        // 2. Atualizar ou Adicionar o novo checklist
-        const index = dadosAtuais.findIndex(c => c.id === checklist.id);
-        if (index >= 0) {
-            dadosAtuais[index] = checklist; // Atualiza
-        } else {
-            dadosAtuais.push(checklist); // Adiciona
-        }
-
-        // 3. Salvar de volta no Gist
-        const filename = config.FILENAME || 'checklist_backup.json';
-        const url = `https://api.github.com/gists/${config.GIST_ID}`;
-        
-        const body = {
-            files: {
-                [filename]: {
-                    content: JSON.stringify(dadosAtuais, null, 2)
-                }
-            }
-        };
-
-        const response = await fetch(url, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `token ${config.TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Erro ao salvar no Gist: ${response.statusText}`);
-        }
-        
-        console.log("Salvo no Gist com sucesso!");
-
-    } catch (error) {
-        console.error("Erro ao salvar nuvem:", error);
-        throw error;
-    }
+  // salva por id (transforma em string pra ser chave)
+  const id = String(checklist.id);
+  await set(ref(db, `${userPath(user.uid)}/${id}`), checklist);
 }
+
+export async function excluirChecklistNuvem(id) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Não autenticado.");
+
+  await remove(ref(db, `${userPath(user.uid)}/${String(id)}`));
+}
+
+// ===== Gate do app: só aparece logado =====
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  showApp();
+  enforceSingleSession(user.uid);
+});
