@@ -1,4 +1,4 @@
-// firebase_app.js (Realtime Database + Auth + 1 sessão por vez + kick)
+// firebase_app.js (Realtime Database + Auth + 1 sessão por vez)
 import { auth, db } from "./firebase.js";
 
 import {
@@ -15,8 +15,7 @@ import {
   set,
   remove,
   onValue,
-  onDisconnect,
-  update
+  onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // ===== UI helpers =====
@@ -46,41 +45,29 @@ document.getElementById("btnLogin")?.addEventListener("click", async () => {
   }
 });
 
-// ===== 1 sessão por usuário =====
-const STALE_LOCK_MS = 2 * 60 * 1000;
+// ===== Sessão única =====
+const STALE_LOCK_MS = 2 * 60 * 1000; // 2 min
 
 function newSessionId() {
   return crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
 }
 
-function sessionsBase(uid) {
-  return `sessions/${uid}`;
-}
-
-async function readLock(uid) {
-  const lockRef = ref(db, `${sessionsBase(uid)}/lock`);
-  const snap = await get(lockRef);
-  return { exists: snap.exists(), val: snap.val(), lockRef };
-}
-
-async function writeLock(lockRef, mySessionId) {
-  await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
-}
-
 async function tryAcquireLock(uid, mySessionId) {
-  const { exists, val, lockRef } = await readLock(uid);
+  const lockRef = ref(db, `sessions/${uid}`);
+  const snap = await get(lockRef);
 
-  if (!exists) {
-    await writeLock(lockRef, mySessionId);
+  if (!snap.exists()) {
+    await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
     return { ok: true };
   }
 
-  const v = val || {};
+  const v = snap.val() || {};
   if (v.sessionId === mySessionId) return { ok: true };
 
+  // lock antigo (provável preso) -> assume sem perguntar
   const ts = Number(v.ts || 0);
   if (ts && (Date.now() - ts) > STALE_LOCK_MS) {
-    await writeLock(lockRef, mySessionId);
+    await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
     return { ok: true, stale: true, previous: v };
   }
 
@@ -88,45 +75,20 @@ async function tryAcquireLock(uid, mySessionId) {
 }
 
 async function forceAcquireLock(uid, mySessionId) {
-  const lockRef = ref(db, `${sessionsBase(uid)}/lock`);
-  await writeLock(lockRef, mySessionId);
-}
-
-async function sendKick(uid, fromSessionId) {
-  const kickRef = ref(db, `${sessionsBase(uid)}/kick`);
-  await set(kickRef, { from: fromSessionId, ts: Date.now() });
+  const lockRef = ref(db, `sessions/${uid}`);
+  await set(lockRef, { sessionId: mySessionId, ts: Date.now() });
 }
 
 function enforceSingleSession(uid) {
   const mySessionId = newSessionId();
 
-  const lockRef = ref(db, `${sessionsBase(uid)}/lock`);
-  const kickRef = ref(db, `${sessionsBase(uid)}/kick`);
+  const lockRef = ref(db, `sessions/${uid}`);
   const connectedRef = ref(db, ".info/connected");
 
   let onDisconnectArmed = false;
   let hasLock = false;
-  let lastKickTsSeen = 0;
 
-  // 1) Ouve "kick": se alguém assumir, eu saio (canal separado)
-  onValue(kickRef, async (snap) => {
-    const v = snap.val();
-    if (!v?.ts) return;
-
-    // evita reprocessar o mesmo kick
-    if (v.ts <= lastKickTsSeen) return;
-    lastKickTsSeen = v.ts;
-
-    // se o kick veio de outra sessão, saio
-    if (v.from && v.from !== mySessionId) {
-      alert("Sua sessão foi encerrada porque a conta foi aberta em outro dispositivo.");
-      hasLock = false;
-      await signOut(auth);
-      showLogin("Sessão encerrada.");
-    }
-  });
-
-  // 2) Ouve mudanças do lock: se eu era dono e trocaram, eu saio
+  // Se alguém assumir depois, você é desconectado (só se você já tinha lock)
   onValue(lockRef, async (snap) => {
     const v = snap.val();
     if (!v) return;
@@ -139,17 +101,14 @@ function enforceSingleSession(uid) {
     }
   });
 
-  // 3) Conectou no RTDB: arma onDisconnect e tenta pegar lock
+  // Quando conectar no RTDB: arma onDisconnect e tenta pegar lock
   onValue(connectedRef, async (snap) => {
     if (snap.val() !== true) return;
 
+    // armar onDisconnect quando estiver conectado
     if (!onDisconnectArmed) {
       onDisconnectArmed = true;
-
-      // armar onDisconnect quando conectado (presença)
-      await onDisconnect(lockRef).remove(); // remove lock ao desconectar [web:90]
-      // (opcional) limpar kick ao desconectar também
-      await onDisconnect(kickRef).remove(); // idem [web:90]
+      await onDisconnect(lockRef).remove(); // presença [web:90]
     }
 
     const res = await tryAcquireLock(uid, mySessionId);
@@ -158,6 +117,7 @@ function enforceSingleSession(uid) {
       return;
     }
 
+    // existe outra sessão -> pergunta
     const ok = confirm(
       "Esta conta já está em uso em outro dispositivo.\n\n" +
       "Quer entrar aqui mesmo assim? (isso vai desconectar o outro dispositivo)"
@@ -170,14 +130,8 @@ function enforceSingleSession(uid) {
       return;
     }
 
-    // assume: escreve lock + manda kick para o outro cair rápido
     await forceAcquireLock(uid, mySessionId);
-    await sendKick(uid, mySessionId);
-
     hasLock = true;
-
-    // (extra) atualiza ts do lock (mantém “vivo” se quiser)
-    await update(lockRef, { ts: Date.now() });
   });
 }
 
