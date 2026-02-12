@@ -15,6 +15,17 @@
     <script type="module" src="firebase_app.js"></script>
 </head>
 <body>
+    <!-- LOGIN -->
+<div id="loginBox" style="max-width:360px;margin:20px auto;padding:16px;border:1px solid #ddd;border-radius:8px;">
+  <h3>Entrar</h3>
+  <input id="loginEmail" type="email" placeholder="Email" style="width:100%;padding:10px;margin:6px 0;">
+  <input id="loginSenha" type="password" placeholder="Senha" style="width:100%;padding:10px;margin:6px 0;">
+  <button id="btnLogin" style="width:100%;padding:10px;">Entrar</button>
+  <p id="loginMsg" style="color:#b00020;"></p>
+</div>
+
+<div id="appWrap" style="display:none;">
+
     <div class="container">
        <div class="header">
     <div class="logo-container">
@@ -650,6 +661,9 @@
 <div class="os-footer" id="rRodape" style="position: fixed; bottom: 0; left: 0; right: 0; width: 100%; text-align: center; font-size: 10px; background: #f8f9fa; padding: 8px 12px; border-top: 2px solid var(--color-primary); z-index: 9999; box-sizing: border-box; font-family: Arial, sans-serif;">
     <span id="rodape-texto">Developed by Hallz Branding 3199676-6963</span>
 </div>
+
+    </div> <!-- /appWrap -->
+
 
 </body>
 </html>
