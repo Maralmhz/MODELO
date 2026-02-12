@@ -1,4 +1,4 @@
-// firebase_app.js (Realtime Database + Auth + 1 sessão por vez - simples e estável)
+// firebase_app.js (Realtime Database + Auth + 1 sessão por vez + lembrar-me)
 import { auth, db } from "./firebase.js";
 
 import {
@@ -6,7 +6,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   setPersistence,
-  browserLocalPersistence
+  browserLocalPersistence,
+  browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 import {
@@ -31,13 +32,42 @@ function showApp() {
   document.getElementById("loginMsg").textContent = "";
 }
 
+// ===== Remember-me (salva escolha) =====
+const REMEMBER_KEY = "rememberMe";
+
+function loadRememberMe() {
+  const saved = localStorage.getItem(REMEMBER_KEY); // [web:442]
+  const remember = saved === null ? true : saved === "1";
+  const el = document.getElementById("rememberMe");
+  if (el) el.checked = remember;
+  return remember;
+}
+
+function saveRememberMe(value) {
+  localStorage.setItem(REMEMBER_KEY, value ? "1" : "0"); // [web:441]
+}
+
+// inicializa checkbox quando a tela carregar
+loadRememberMe();
+document.getElementById("rememberMe")?.addEventListener("change", (e) => {
+  saveRememberMe(e.target.checked);
+});
+
 // ===== LOGIN button =====
 document.getElementById("btnLogin")?.addEventListener("click", async () => {
   const email = document.getElementById("loginEmail").value.trim();
   const senha = document.getElementById("loginSenha").value;
 
+  const remember = document.getElementById("rememberMe")?.checked ?? true;
+  saveRememberMe(remember);
+
   try {
-    await setPersistence(auth, browserLocalPersistence);
+    // define persistência ANTES do login [web:425]
+    await setPersistence(
+      auth,
+      remember ? browserLocalPersistence : browserSessionPersistence
+    );
+
     await signInWithEmailAndPassword(auth, email, senha);
   } catch (e) {
     showLogin("Email ou senha inválidos.");
@@ -145,7 +175,7 @@ export async function buscarChecklistsNuvem() {
   if (!snap.exists()) return [];
 
   const obj = snap.val();
-  return Object.values(obj);
+  return Object.values(obj); // {id: checklist} -> [checklist]
 }
 
 export async function salvarNoFirebase(checklist) {
@@ -163,7 +193,7 @@ export async function excluirChecklistNuvem(id) {
   await remove(ref(db, `${userPath(user.uid)}/${String(id)}`));
 }
 
-// ===== Gate do app =====
+// ===== Gate do app: só aparece logado =====
 let sessionStarted = false;
 
 onAuthStateChanged(auth, (user) => {
