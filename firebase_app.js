@@ -52,12 +52,17 @@ async function enforceSingleSession(uid) {
   const sessionRef = ref(db, `sessions/${uid}`);
   const connectedRef = ref(db, ".info/connected");
 
-  // Quando conectar, registra minha sessão e agenda remoção no disconnect
+  // Quando conectar, agenda remoção e depois grava a sessão atual
   onValue(connectedRef, async (snap) => {
     if (snap.val() !== true) return;
-    await set(sessionRef, { sessionId: mySessionId, ts: Date.now() });
+
+    // 1) primeiro agenda a remoção ao desconectar
     await onDisconnect(sessionRef).remove();
+
+    // 2) depois grava a sessão
+    await set(sessionRef, { sessionId: mySessionId, ts: Date.now() });
   });
+
 
   // Se outro dispositivo sobrescrever sessionId, desloga este
   onValue(sessionRef, async (snap) => {
