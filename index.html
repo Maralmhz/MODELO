@@ -15,19 +15,51 @@
     <script type="module" src="firebase_app.js"></script>
 </head>
 <body>
-    <!-- LOGIN -->
-<div id="loginBox" style="max-width:360px;margin:20px auto;padding:16px;border:1px solid #ddd;border-radius:8px;">
-  <h3>Entrar</h3>
-  <input id="loginEmail" type="email" placeholder="Email" style="width:100%;padding:10px;margin:6px 0;">
-  <input id="loginSenha" type="password" placeholder="Senha" style="width:100%;padding:10px;margin:6px 0;">
-  <button id="btnLogin" style="width:100%;padding:10px;">Entrar</button>
-  <p id="loginMsg" style="color:#b00020;"></p>
-    <label style="display:flex; gap:.5rem; align-items:center;">
-  <input type="checkbox" id="rememberMe">
-  Lembrar-me
-</label>
+    
+<!-- LOGIN -->
+<div id="loginBox" 
+     style="max-width:360px;margin:20px auto;padding:16px;border:1px solid #ddd;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06);font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+  
+  <h3 style="margin-top:0;margin-bottom:12px;text-align:center;">Entrar</h3>
 
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+    <input id="loginEmail" 
+           type="email" 
+           placeholder="Email" 
+           style="width:100%;padding:10px;border-radius:4px;border:1px solid #ccc;box-sizing:border-box;">
+    
+    <input id="loginSenha" 
+           type="password" 
+           placeholder="Senha" 
+           style="width:100%;padding:10px;border-radius:4px;border:1px solid #ccc;box-sizing:border-box;">
+  </div>
+
+  <!-- Linha principal: botão Entrar + Lembrar-me -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+    <button id="btnLogin" 
+            style="flex:1;padding:10px;border:none;border-radius:4px;background:#1976d2;color:#fff;font-weight:600;cursor:pointer;">
+      Entrar
+    </button>
+
+    <label for="rememberMe" 
+           style="display:flex;align-items:center;gap:4px;font-size:13px;white-space:nowrap;">
+      <input type="checkbox" id="rememberMe" style="margin:0;">
+      <span>Lembrar-me</span>
+    </label>
+  </div>
+
+  <!-- Esqueci minha senha -->
+  <div style="text-align:right;margin-bottom:4px;">
+    <button id="btnForgotPassword"
+            type="button"
+            style="border:none;background:none;color:#1976d2;font-size:13px;cursor:pointer;padding:0;">
+      Esqueci minha senha
+    </button>
+  </div>
+
+  <p id="loginMsg" style="color:#b00020;font-size:13px;margin-top:4px;min-height:16px;"></p>
 </div>
+
 
 <div id="appWrap" style="display:none;">
 
